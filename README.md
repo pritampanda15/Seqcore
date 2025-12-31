@@ -1,7 +1,7 @@
 # Seqcore
 <p align="center">
-  <a href="https://github.com/pritampanda15/seqcore">
-    <img src="https://github.com/pritampanda15/seqcore/blob/main/logo/seqcore_logo.png" width="400" alt="Seqcore Logo"/>
+  <a href="https://github.com/pritampanda15/Seqcore">
+    <img src="https://github.com/pritampanda15/Seqcore/blob/main/logo/seqcore_logo.png" width="400" alt="Seqcore Logo"/>
   </a>
 </p>
 
