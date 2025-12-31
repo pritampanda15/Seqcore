@@ -1,0 +1,17 @@
+##gff-version 3
+##sequence-region chr17 41196312 41277500
+chr17	ensembl	gene	41196312	41277500	.	-	.	ID=gene:BRCA1;Name=BRCA1;biotype=protein_coding;description=BRCA1 DNA repair associated
+chr17	ensembl	mRNA	41196312	41277500	.	-	.	ID=transcript:BRCA1-201;Parent=gene:BRCA1;Name=BRCA1-201;biotype=protein_coding
+chr17	ensembl	exon	41276034	41277500	.	-	.	ID=exon:ENSE00001814242;Parent=transcript:BRCA1-201;Name=ENSE00001814242;exon_id=ENSE00001814242
+chr17	ensembl	exon	41267743	41267796	.	-	.	ID=exon:ENSE00003659301;Parent=transcript:BRCA1-201;Name=ENSE00003659301;exon_id=ENSE00003659301
+chr17	ensembl	exon	41258473	41258550	.	-	.	ID=exon:ENSE00003527960;Parent=transcript:BRCA1-201;Name=ENSE00003527960;exon_id=ENSE00003527960
+chr17	ensembl	exon	41256885	41256973	.	-	.	ID=exon:ENSE00003536153;Parent=transcript:BRCA1-201;Name=ENSE00003536153;exon_id=ENSE00003536153
+chr17	ensembl	exon	41251792	41251897	.	-	.	ID=exon:ENSE00003477486;Parent=transcript:BRCA1-201;Name=ENSE00003477486;exon_id=ENSE00003477486
+chr17	ensembl	CDS	41276034	41276113	.	-	0	ID=CDS:BRCA1-201;Parent=transcript:BRCA1-201;protein_id=ENSP00000350283
+chr17	ensembl	CDS	41267743	41267796	.	-	2	ID=CDS:BRCA1-201;Parent=transcript:BRCA1-201;protein_id=ENSP00000350283
+chr17	ensembl	CDS	41258473	41258550	.	-	0	ID=CDS:BRCA1-201;Parent=transcript:BRCA1-201;protein_id=ENSP00000350283
+chr1	ensembl	gene	11873	14409	.	+	.	ID=gene:DDX11L1;Name=DDX11L1;biotype=transcribed_unprocessed_pseudogene
+chr1	ensembl	transcript	11873	14409	.	+	.	ID=transcript:DDX11L1-201;Parent=gene:DDX11L1;Name=DDX11L1-201
+chr1	ensembl	exon	11873	12227	.	+	.	ID=exon:ENSE00002234944;Parent=transcript:DDX11L1-201;exon_id=ENSE00002234944
+chr1	ensembl	exon	12613	12721	.	+	.	ID=exon:ENSE00002312635;Parent=transcript:DDX11L1-201;exon_id=ENSE00002312635
+chr1	ensembl	exon	13221	14409	.	+	.	ID=exon:ENSE00002324813;Parent=transcript:DDX11L1-201;exon_id=ENSE00002324813

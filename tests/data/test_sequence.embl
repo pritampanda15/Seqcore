@@ -1,0 +1,83 @@
+ID   BRCA1_TEST; SV 1; linear; genomic DNA; STD; HUM; 500 BP.
+XX
+AC   X00001;
+XX
+DT   01-JAN-2024 (Rel. 1, Created)
+DT   01-JAN-2024 (Rel. 1, Last updated, Version 1)
+XX
+DE   Homo sapiens BRCA1 gene, partial sequence.
+XX
+KW   BRCA1; breast cancer; DNA repair.
+XX
+OS   Homo sapiens (human)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+OC   Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini;
+OC   Hominidae; Homo.
+XX
+RN   [1]
+RP   1-500
+RA   Panda P.K.;
+RT   "Test sequence for Biocore";
+RL   Unpublished.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..500
+FT                   /organism="Homo sapiens"
+FT                   /mol_type="genomic DNA"
+FT                   /db_xref="taxon:9606"
+FT   gene            1..500
+FT                   /gene="BRCA1"
+FT   CDS             1..498
+FT                   /gene="BRCA1"
+FT                   /codon_start=1
+FT                   /product="breast cancer type 1 susceptibility protein"
+FT                   /translation="MDLSALRVEEVQNVINAMQKILECPICLELIKEPVSTKCDHIFC
+FT                   RFCMLKLLNQKKGPSQCPLCKNDITKRSLQESTRFSQLVEELLKIICAFQLDTGLEYA
+FT                   NSYNFAKKENNSPEHLKDEVSIIQSMGYRNRAKRLLQSEPENPSLQETSLSVQL"
+XX
+SQ   Sequence 500 BP; 125 A; 125 C; 125 G; 125 T; 0 other;
+     atggatttat ctgctcttcg cgttgaagaa gtacaaaatg tcattaatgc tatgcagaaa        60
+     atcttagagt gtcccatctg tctggagttg atcaaggaac ctgtctccac aaagtgtgac       120
+     cacatatttt gcaaattttg catgctgaaa cttctcaacc agaagaaagg gccttcacag       180
+     tgtcctttat gtaagaatga tataaccaaa aggagcctac aagaaagtac gagatttagc       240
+     cagtcttatt tttgtttttt attttttgag acagtctcac cctgtcaccc aggctggagt       300
+     gcagtggtgc gatcttggct cactgcaact tccgcctccc gggttcaagc gattctcctg       360
+     cctcagcctc ccgagtagct gggactacag gtgtccgcca ccacgcccag ctaatttttg       420
+     tatttttagt agagacgggg tttcaccatg ttggtcaggc tggtctcgaa ctcctgacct       480
+     caagtgatcc gcccgcctcg                                                   500
+//
+ID   GFP_TEST; SV 1; linear; genomic DNA; STD; SYN; 720 BP.
+XX
+AC   X00002;
+XX
+DE   Green fluorescent protein (GFP) gene, complete cds.
+XX
+OS   synthetic construct
+OC   other sequences; artificial sequences.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..720
+FT                   /organism="synthetic construct"
+FT                   /mol_type="other DNA"
+FT   gene            1..720
+FT                   /gene="GFP"
+FT   CDS             1..717
+FT                   /gene="GFP"
+FT                   /product="green fluorescent protein"
+XX
+SQ   Sequence 720 BP; 180 A; 180 C; 180 G; 180 T; 0 other;
+     atgagtaaag gagaagaact tttcactgga gttgtcccaa ttcttgttga attagatggt        60
+     gatgttaatg ggcacaaatt ttctgtcagt ggagagggtg aaggtgatgc aacatacgga       120
+     aaacttaccc ttaaatttat ttgcactact ggaaaactac ctgttccatg gccaacactt       180
+     gtcactactt tctcttatgg tgttcaatgc ttttcaagat acccagatca tatgaaacgg       240
+     catgactttt tcaagagtgc catgcccgaa ggttatgtac aggaaagaac tatatttttc       300
+     aaagatgacg ggaactacaa gacacgtgct gaagtcaagt ttgaaggtga tacccttgtt       360
+     aatagaatcg agttaaaagg tattgatttt aaagaagatg gaaacattct tggacacaaa       420
+     ttggaataca actataactc acacaatgta tacatcatgg cagacaaaca aaagaatgga       480
+     atcaaagtta acttcaaaat tagacacaac attgaagatg gaagcgttca actagcagac       540
+     cattatcaac aaaatactcc aattggcgat ggccctgtcc ttttaccaga caaccattac       600
+     ctgtccacac aatctgccct ttcgaaagat cccaacgaaa agagagacca catggtcctt       660
+     cttgagtttg taacagctgc tgggattaca cttggcatgg atgaactata caaatgatga       720
+//

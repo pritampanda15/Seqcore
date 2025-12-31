@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Seqcore: A High-Performance Biological Sequence Analysis Library"
+version: 0.1.0
+date-released: 2024-01-01
+url: "https://github.com/pritampanda15/seqcore"
+repository-code: "https://github.com/pritampanda15/seqcore"
+license: MIT
+authors:
+  - family-names: "Panda"
+    given-names: "Pritam Kumar"
+    email: "pritam@stanford.edu"
+    affiliation: "Stanford University"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+keywords:
+  - bioinformatics
+  - genomics
+  - proteomics
+  - sequence analysis
+  - structural biology
+  - drug design
+  - python
+  - gpu-acceleration
+abstract: >-
+  Seqcore is a high-performance Python library for biological sequence
+  analysis, providing unified APIs for genomics, proteomics, structural
+  biology, and drug design. It features vectorized operations with optional
+  GPU acceleration, support for 16+ file formats, and tools for phylogenetics,
+  population genetics, and molecular analysis.

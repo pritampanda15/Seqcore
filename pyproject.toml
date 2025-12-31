@@ -1,0 +1,147 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "seqcore"
+version = "0.1.0"
+description = "High-performance biological sequence analysis library with GPU acceleration"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Dr. Pritam Kumar Panda", email = "pritam@stanford.edu", affiliation = "Stanford University"}
+]
+maintainers = [
+    {name = "Dr. Pritam Kumar Panda", email = "pritam@stanford.edu"}
+]
+keywords = [
+    "bioinformatics",
+    "genomics",
+    "proteomics",
+    "structural-biology",
+    "drug-design",
+    "sequence-analysis",
+    "gpu-acceleration",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
+dependencies = [
+    "numpy>=1.22.0,<2.0.0",  # NumPy 1.x for compatibility with pandas wheels
+]
+
+[project.optional-dependencies]
+gpu = [
+    "cupy>=11.0.0",
+]
+full = [
+    "biopython>=1.79",
+    "pandas>=1.5.0,<2.2.0",  # Compatible with numpy<2.0
+    "h5py>=3.0.0",
+]
+structure = [
+    "MDAnalysis>=2.0.0",
+]
+molecules = [
+    "rdkit>=2022.03.1; python_version>='3.10'",  # rdkit wheels only for 3.10+
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "h5py>=3.0.0",
+    "bandit>=1.7.0",
+    "pip-audit>=2.6.0",
+    "biopython>=1.79",
+    "pandas>=1.5.0,<2.2.0",
+]
+docs = [
+    "sphinx>=6.0.0",
+    "sphinx-rtd-theme>=1.0.0",
+    "myst-parser>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/pritampanda15/seqcore"
+Documentation = "https://seqcore.readthedocs.io"
+Repository = "https://github.com/pritampanda15/seqcore"
+Issues = "https://github.com/pritampanda15/seqcore/issues"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/seqcore",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["seqcore"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4", "SIM"]
+ignore = [
+    "D100",  # Missing docstring in public module
+    "D104",  # Missing docstring in public package
+    "D105",  # Missing docstring in magic method
+    "D107",  # Missing docstring in __init__
+    "D203",  # 1 blank line required before class docstring
+    "D213",  # Multi-line docstring summary should start at the second line
+    "N806",  # Variable in function should be lowercase (allow math notation like R, U, Vt)
+    "N813",  # Camelcase imported as lowercase (allow MDAnalysis as mda)
+    "B007",  # Loop control variable not used within loop body
+    "UP035", # Deprecated typing imports (Dict, List) - keep for Python 3.9 compatibility
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["seqcore"]
+skip_gitignore = true
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["seqcore"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]

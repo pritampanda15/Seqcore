@@ -1,0 +1,120 @@
+LOCUS       BRCA1_HUMAN              1863 bp    DNA     linear   PRI 01-JAN-2024
+DEFINITION  Homo sapiens BRCA1 DNA repair associated (BRCA1), partial cds.
+ACCESSION   NM_007294
+VERSION     NM_007294.4
+KEYWORDS    RefSeq.
+SOURCE      Homo sapiens (human)
+  ORGANISM  Homo sapiens
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini;
+            Catarrhini; Hominidae; Homo.
+REFERENCE   1  (bases 1 to 1863)
+  AUTHORS   Miki,Y., Swensen,J., Shattuck-Eidens,D., Futreal,P.A., Harshman,K.
+  TITLE     A strong candidate for the breast and ovarian cancer susceptibility
+            gene BRCA1
+  JOURNAL   Science 266 (5182), 66-71 (1994)
+   PUBMED   7545954
+FEATURES             Location/Qualifiers
+     source          1..1863
+                     /organism="Homo sapiens"
+                     /mol_type="mRNA"
+                     /db_xref="taxon:9606"
+                     /chromosome="17"
+                     /map="17q21.31"
+     gene            1..1863
+                     /gene="BRCA1"
+                     /gene_synonym="BRCAI; BRCC1; BROVCA1; FANCS; IRIS; PNCA4;
+                     PPP1R53; PSCP; RNF53"
+                     /note="BRCA1 DNA repair associated"
+                     /db_xref="GeneID:672"
+                     /db_xref="HGNC:HGNC:1100"
+                     /db_xref="MIM:113705"
+     CDS             1..1863
+                     /gene="BRCA1"
+                     /codon_start=1
+                     /product="breast cancer type 1 susceptibility protein"
+                     /protein_id="NP_009225.1"
+                     /translation="MDLSALRVEEVQNVINAMQKILECPICLELIKEPVSTKCDHIFC
+                     RFCMLKLLNQKKGPSQCPLCKNDITKRSLQESTRFSQLVEELLKIICAFQLDTGLEYA
+                     NSYNFAKKENNSPEHLKDEVSIIQSMGYRNRAKRLLQSEPENPSLQETSLSVQLSNLG
+                     TVRTLRTKQRIQPQKTSVYIELGSDSSEDTVNKATYCSVGDQELLQITPQGTRDEISY
+                     LDTPGRNSDNKAVKKMISLFKVKVRRGQKEQLSELSESSLKPNKPLKKCRTPISPRGS
+                     TRPKLVSSALNSQPNQTRSFTPPSNLPLPPPGSLPPPPFPQGTLQPQSLPPQGPGPQL
+                     PPQPGSPQSLLPEGSKRPISIPSPVSLPEPIKPIHRTSPSSP"
+     exon            1..100
+                     /gene="BRCA1"
+                     /number=1
+     exon            101..200
+                     /gene="BRCA1"
+                     /number=2
+ORIGIN
+        1 atggatttat ctgctcttcg cgttgaagaa gtacaaaatg tcattaatgc tatgcagaaa
+       61 atcttagagt gtcccatctg tctggagttg atcaaggaac ctgtctccac aaagtgtgac
+      121 cacatatttt gcaaattttg catgctgaaa cttctcaacc agaagaaagg gccttcacag
+      181 tgtcctttat gtaagaatga tataaccaaa aggagcctac aagaaagtac gagatttagc
+      241 cagtcttatt tttgtttttt attttttgag acagtctcac cctgtcaccc aggctggagt
+      301 gcagtggtgc gatcttggct cactgcaact tccgcctccc gggttcaagc gattctcctg
+      361 cctcagcctc ccgagtagct gggactacag gtgtccgcca ccacgcccag ctaatttttg
+      421 tatttttagt agagacgggg tttcaccatg ttggtcaggc tggtctcgaa ctcctgacct
+      481 caagtgatcc gcccgcctcg gcctcccaaa gtgctgggat tacaggcgtg agccaccgcg
+      541 cccagcctat ttttgtatta gttagaaacg gggtttcacc atgttggcca ggctggtctc
+      601 gaactcctga cctcaagtga tctgcccacc tcagcctccc aaagtgctgg gattacaggc
+      661 gtgagccact gcgcccagcc cagaaagttt tcttttattt ttaaagacat ggtttcactc
+      721 tgttgcccag gctggagtgc agtggtgcaa tctcggctca ctgcaacctc cgcctcctag
+      781 gttcaagtga ttctcctgcc tcagcctccc aagtagctgg gactacaggc gcacaccacc
+      841 atgcctggct aatttttgta tttttagtag agatggggtt tcaccatgtt ggccaggctg
+      901 gtcttgaact cctggcctca agtgatctgc ccgcctcggc ctcccaaagt gctgggatta
+      961 caggcatgag ctaccacgcc cggcctattt ttttgtttgt ttgttttgtt ttgttttgag
+     1021 atggagtctc actcttgttg cccaggctgg agtgcaatgg tgagatcttg gctcactgca
+     1081 acctctgcct cccaggttca agtgattctc ctgcctcagc ctcccgagta gctgggacta
+     1141 caggcgtgca ccaccacacc cggctaattt tttgtatttt tagtagagat ggggttttgc
+     1201 catgttggcc aggctggtct cgaactcctg acctcaggtg atccgcctgc ctcggcctcc
+     1261 caaagtgctg ggattacagg cgtgagccac cgcgcccggc ctatgtattt ttgtttgttt
+     1321 tttgagatgg agtttcgctc ttgttgccca ggctggagtg caatggtgcg atctcggctc
+     1381 actgcaagct ccacctcccg ggttcacgcc attctcctgc ctcagcctcc caagtagctg
+     1441 ggactacagg cacccgccac cacgcccggc taattttttg tattttttag tagagacggg
+     1501 gtttcactgt gttagccagg atggtctcga tctcctgacc tcgtgatccg cccgcctcgg
+     1561 cctcccaaag tgctgggatt acaggcgtga gccaccgcgc ctggcctggt ttttattttt
+     1621 taatttttat ttttattttt tgagacggag tttcgctctt gttgcccagg ctggagtgca
+     1681 atggtgcgat cttggctcac tgcaacctcc gcctcccagg ttcaagcgat tctcctgcct
+     1741 cagcctccca agtagctggg attacaggcg cccgccacca cgcccggcta atttttgtat
+     1801 ttttagtaga gacggggttt caccgtgtta gccaggatgg tctcgatctc ctgaccttgt
+     1861 gat
+//
+LOCUS       GFP                      720 bp    DNA     linear   SYN 01-JAN-2024
+DEFINITION  Green fluorescent protein (GFP) gene, complete cds.
+ACCESSION   U55762
+VERSION     U55762.1
+KEYWORDS    .
+SOURCE      synthetic construct
+  ORGANISM  synthetic construct
+            other sequences; artificial sequences.
+FEATURES             Location/Qualifiers
+     source          1..720
+                     /organism="synthetic construct"
+                     /mol_type="other DNA"
+     gene            1..720
+                     /gene="GFP"
+     CDS             1..720
+                     /gene="GFP"
+                     /codon_start=1
+                     /product="green fluorescent protein"
+                     /translation="MSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTL
+                     KFICTTGKLPVPWPTLVTTLTYGVQCFSRYPDHMKQHDFFKSAMPEGYVQERTIFFKD
+                     DGNYKTRAEVKFEGDTLVNRIELKGIDFKEDGNILGHKLEYNYNSHNVYIMADKQKNG
+                     IKVNFKIRHNIEDGSVQLADHYQQNTPIGDGPVLLPDNHYLSTQSALSKDPNEKRDHM
+                     VLLEFVTAAGITLGMDELYK"
+ORIGIN
+        1 atgagtaaag gagaagaact tttcactgga gttgtcccaa ttcttgttga attagatggt
+       61 gatgttaatg ggcacaaatt ttctgtcagt ggagagggtg aaggtgatgc aacatacgga
+      121 aaacttaccc ttaaatttat ttgcactact ggaaaactac ctgttccatg gccaacactt
+      181 gtcactactt tctcttatgg tgttcaatgc ttttcaagat acccagatca tatgaaacgg
+      241 catgactttt tcaagagtgc catgcccgaa ggttatgtac aggaaagaac tatatttttc
+      301 aaagatgacg ggaactacaa gacacgtgct gaagtcaagt ttgaaggtga tacccttgtt
+      361 aatagaatcg agttaaaagg tattgatttt aaagaagatg gaaacattct tggacacaaa
+      421 ttggaataca actataactc acacaatgta tacatcatgg cagacaaaca aaagaatgga
+      481 atcaaagtta acttcaaaat tagacacaac attgaagatg gaagcgttca actagcagac
+      541 cattatcaac aaaatactcc aattggcgat ggccctgtcc ttttaccaga caaccattac
+      601 ctgtccacac aatctgccct ttcgaaagat cccaacgaaa agagagacca catggtcctt
+      661 cttgagtttg taacagctgc tgggattaca cttggcatgg atgaactata caaatgatga
+//

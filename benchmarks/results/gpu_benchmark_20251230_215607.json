@@ -1,0 +1,183 @@
+{
+  "timestamp": "20251230_215607",
+  "gpu_available": true,
+  "gpu_name": "Unknown GPU",
+  "results": [
+    {
+      "operation": "gc_content",
+      "n_seqs": 1000,
+      "seq_len": 1000,
+      "cpu_time": 0.004699077981058508,
+      "gpu_time": 0.00022004498168826103,
+      "speedup": 21.355079061588047
+    },
+    {
+      "operation": "gc_content",
+      "n_seqs": 10000,
+      "seq_len": 1000,
+      "cpu_time": 0.03764314396539703,
+      "gpu_time": 0.00029780197655782104,
+      "speedup": 126.40327106119211
+    },
+    {
+      "operation": "gc_content",
+      "n_seqs": 50000,
+      "seq_len": 1000,
+      "cpu_time": 0.1873468789854087,
+      "gpu_time": 0.0015893540112301707,
+      "speedup": 117.87611675035252
+    },
+    {
+      "operation": "gc_content",
+      "n_seqs": 100000,
+      "seq_len": 1000,
+      "cpu_time": 0.3808425280149095,
+      "gpu_time": 0.002703681995626539,
+      "speedup": 140.86069612881923
+    },
+    {
+      "operation": "gc_content",
+      "n_seqs": 10000,
+      "seq_len": 10000,
+      "cpu_time": 0.116492279979866,
+      "gpu_time": 0.00270166399423033,
+      "speedup": 43.118715069174684
+    },
+    {
+      "operation": "complement",
+      "n_seqs": 1000,
+      "seq_len": 1000,
+      "cpu_time": 0.0022425029892474413,
+      "gpu_time": 0.0001609140308573842,
+      "speedup": 13.936031415650382
+    },
+    {
+      "operation": "complement",
+      "n_seqs": 10000,
+      "seq_len": 1000,
+      "cpu_time": 0.0237740789889358,
+      "gpu_time": 0.00016380799934267998,
+      "speedup": 145.13380960841448
+    },
+    {
+      "operation": "complement",
+      "n_seqs": 50000,
+      "seq_len": 1000,
+      "cpu_time": 0.11582873796578497,
+      "gpu_time": 0.000681355013512075,
+      "speedup": 169.99763070464624
+    },
+    {
+      "operation": "complement",
+      "n_seqs": 100000,
+      "seq_len": 1000,
+      "cpu_time": 0.2405359250260517,
+      "gpu_time": 0.00133711495436728,
+      "speedup": 179.8917320013617
+    },
+    {
+      "operation": "complement",
+      "n_seqs": 10000,
+      "seq_len": 10000,
+      "cpu_time": 0.23308477405225858,
+      "gpu_time": 0.0013392880209721625,
+      "speedup": 174.03633154507497
+    },
+    {
+      "operation": "reverse_complement",
+      "n_seqs": 1000,
+      "seq_len": 1000,
+      "cpu_time": 0.0026015719631686807,
+      "gpu_time": 0.0006574699655175209,
+      "speedup": 3.956944194585192
+    },
+    {
+      "operation": "reverse_complement",
+      "n_seqs": 10000,
+      "seq_len": 1000,
+      "cpu_time": 0.024279466015286744,
+      "gpu_time": 0.008491326007060707,
+      "speedup": 2.859325621828426
+    },
+    {
+      "operation": "reverse_complement",
+      "n_seqs": 50000,
+      "seq_len": 1000,
+      "cpu_time": 0.12434391101123765,
+      "gpu_time": 0.042853676015511155,
+      "speedup": 2.9015926420461713
+    },
+    {
+      "operation": "reverse_complement",
+      "n_seqs": 100000,
+      "seq_len": 1000,
+      "cpu_time": 0.25374666799325496,
+      "gpu_time": 0.08543546497821808,
+      "speedup": 2.9700390588141365
+    },
+    {
+      "operation": "reverse_complement",
+      "n_seqs": 10000,
+      "seq_len": 10000,
+      "cpu_time": 0.24160922795999795,
+      "gpu_time": 0.07765213499078527,
+      "speedup": 3.1114305870491386
+    },
+    {
+      "operation": "distance_matrix",
+      "n_seqs": 100,
+      "seq_len": 1000,
+      "cpu_time": 0.014710278017446399,
+      "gpu_time": 0.0001813580165617168,
+      "speedup": 81.11181571309497
+    },
+    {
+      "operation": "distance_matrix",
+      "n_seqs": 500,
+      "seq_len": 1000,
+      "cpu_time": 0.3521659120451659,
+      "gpu_time": 0.0029274480184540153,
+      "speedup": 120.2979215429911
+    },
+    {
+      "operation": "distance_matrix",
+      "n_seqs": 1000,
+      "seq_len": 1000,
+      "cpu_time": 1.4176772450446151,
+      "gpu_time": 0.013388781051617116,
+      "speedup": 105.88546034019923
+    },
+    {
+      "operation": "distance_matrix",
+      "n_seqs": 2000,
+      "seq_len": 500,
+      "cpu_time": 5.222648331022356,
+      "gpu_time": 0.026995031046681106,
+      "speedup": 193.46702443094438
+    },
+    {
+      "operation": "motif_search",
+      "n_seqs": 1000,
+      "seq_len": 10000,
+      "cpu_time": 14.741977426980156,
+      "gpu_time": 0.22047417500289157,
+      "speedup": 66.86487171019832
+    },
+    {
+      "operation": "motif_search",
+      "n_seqs": 10000,
+      "seq_len": 1000,
+      "cpu_time": 14.704957414011005,
+      "gpu_time": 0.021815162035636604,
+      "speedup": 674.0705106837814
+    },
+    {
+      "operation": "motif_search",
+      "n_seqs": 50000,
+      "seq_len": 1000,
+      "cpu_time": 73.87690275005298,
+      "gpu_time": 0.06938666000496596,
+      "speedup": 1064.7133432386809
+    }
+  ]
+}
