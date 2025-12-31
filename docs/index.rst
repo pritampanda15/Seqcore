@@ -89,7 +89,7 @@ If you use Seqcore in your research, please cite::
     @software{seqcore,
       author = {Panda, Pritam Kumar},
       title = {Seqcore: A High-Performance Biological Sequence Analysis Library},
-      year = {2024},
+      year = {2025},
       url = {https://github.com/pritampanda15/seqcore}
     }
 
