@@ -1,7 +1,7 @@
 # Seqcore
 <p align="center">
   <a href="https://github.com/pritampanda15/Seqcore">
-    <img src="https://github.com/pritampanda15/Seqcore/blob/main/logo/seqcore_logo.png" width="400" alt="Seqcore Logo"/>
+    <img src="https://raw.githubusercontent.com/pritampanda15/Seqcore/main/logo/seqcore_logo.png" width="400" alt="Seqcore Logo"/>
   </a>
 </p>
 
@@ -266,7 +266,7 @@ If you use Seqcore in your research, please cite:
   author = {Panda, Pritam Kumar},
   title = {Seqcore: High-performance biological sequence analysis},
   url = {https://github.com/pritampanda15/seqcore},
-  version = {0.1.0},
+  version = {0.3.0},
   year = {2025},
   institution = {Stanford University}
 }
