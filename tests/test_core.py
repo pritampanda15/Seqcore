@@ -348,4 +348,4 @@ class TestImport:
         """Test version string."""
         import seqcore as sc
 
-        assert sc.__version__ == "0.1.0"
+        assert sc.__version__ == "0.2.0"
