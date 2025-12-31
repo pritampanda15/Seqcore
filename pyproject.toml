@@ -77,10 +77,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pritampanda15/seqcore"
-Documentation = "https://seqcore.readthedocs.io"
-Repository = "https://github.com/pritampanda15/seqcore"
-Issues = "https://github.com/pritampanda15/seqcore/issues"
+Homepage = "https://github.com/pritampanda15/Seqcore"
+Documentation = "https://Seqcore.readthedocs.io"
+Repository = "https://github.com/pritampanda15/Seqcore"
+Issues = "https://github.com/pritampanda15/Seqcore/issues"
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -121,6 +121,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Allow unused imports in __init__.py
+"examples/*.py" = ["D", "F401", "F841", "F541", "E501", "I001"]  # Relax rules for examples
+"benchmarks/*.py" = ["D", "F401", "F841", "F541", "E501"]  # Relax rules for benchmarks
 
 [tool.isort]
 profile = "black"
