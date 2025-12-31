@@ -334,18 +334,18 @@ class TestImport:
 
     def test_main_import(self):
         """Test importing seqcore."""
-        import seqcore as bc
+        import seqcore as sc
 
-        assert hasattr(bc, "DNAArray")
-        assert hasattr(bc, "RNAArray")
-        assert hasattr(bc, "ProteinArray")
-        assert hasattr(bc, "gc_content")
-        assert hasattr(bc, "align")
-        assert hasattr(bc, "read")
-        assert hasattr(bc, "__version__")
+        assert hasattr(sc, "DNAArray")
+        assert hasattr(sc, "RNAArray")
+        assert hasattr(sc, "ProteinArray")
+        assert hasattr(sc, "gc_content")
+        assert hasattr(sc, "align")
+        assert hasattr(sc, "read")
+        assert hasattr(sc, "__version__")
 
     def test_version(self):
         """Test version string."""
-        import seqcore as bc
+        import seqcore as sc
 
-        assert bc.__version__ == "0.1.0"
+        assert sc.__version__ == "0.1.0"

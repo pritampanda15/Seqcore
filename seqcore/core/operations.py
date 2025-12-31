@@ -156,7 +156,7 @@ def gc_content(sequences: BioArray | str | list[str]) -> np.ndarray:
         Array of GC percentages (0-100).
 
     Example:
-        >>> gc = bc.gc_content(dna_sequences)
+        >>> gc = sc.gc_content(dna_sequences)
         >>> print(gc)  # [45.2, 52.1, 38.9, ...]
 
     """

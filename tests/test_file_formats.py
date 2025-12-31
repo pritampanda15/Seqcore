@@ -17,34 +17,34 @@ class TestSequenceFormats:
 
     def test_fasta_format(self):
         """Test FASTA format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
         assert len(sequences) == 5
         assert "BRCA1_human" in sequences.ids
 
     def test_fastq_format(self):
         """Test FASTQ format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        reads = bc.read(os.path.join(TEST_DATA_DIR, "test_reads.fastq"))
+        reads = sc.read(os.path.join(TEST_DATA_DIR, "test_reads.fastq"))
         assert len(reads) == 5
         assert reads.qualities is not None
 
     def test_genbank_format(self):
         """Test GenBank format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        records = bc.read(os.path.join(TEST_DATA_DIR, "test_sequence.gb"))
+        records = sc.read(os.path.join(TEST_DATA_DIR, "test_sequence.gb"))
         assert len(records) == 2
         assert records[0]["locus"] == "BRCA1_HUMAN"
         assert len(records[0]["sequence"]) == 1863
 
     def test_embl_format(self):
         """Test EMBL format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        records = bc.read(os.path.join(TEST_DATA_DIR, "test_sequence.embl"))
+        records = sc.read(os.path.join(TEST_DATA_DIR, "test_sequence.embl"))
         assert len(records) == 2
         assert records[0]["id"] == "BRCA1_TEST"
         assert len(records[0]["sequence"]) == 500
@@ -55,17 +55,17 @@ class TestStructureFormats:
 
     def test_pdb_format(self):
         """Test PDB format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        structure = bc.read(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
+        structure = sc.read(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
         assert len(structure.atoms) > 0
         assert len(structure.chains) == 2
 
     def test_mmcif_format(self):
         """Test mmCIF format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        structure = bc.read(os.path.join(TEST_DATA_DIR, "test_structure.cif"))
+        structure = sc.read(os.path.join(TEST_DATA_DIR, "test_structure.cif"))
         assert len(structure.atoms) == 34
 
 
@@ -74,17 +74,17 @@ class TestMoleculeFormats:
 
     def test_sdf_format(self):
         """Test SDF format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        molecules = bc.read(os.path.join(TEST_DATA_DIR, "test_molecules.sdf"))
+        molecules = sc.read(os.path.join(TEST_DATA_DIR, "test_molecules.sdf"))
         assert len(molecules) == 3
         assert molecules[0].name == "Aspirin"
 
     def test_mol2_format(self):
         """Test MOL2 format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        molecules = bc.read(os.path.join(TEST_DATA_DIR, "test_molecule.mol2"))
+        molecules = sc.read(os.path.join(TEST_DATA_DIR, "test_molecule.mol2"))
         assert len(molecules) == 2
         assert molecules[0].name == "Aspirin"
         assert len(molecules[0].atoms) == 13
@@ -96,25 +96,25 @@ class TestAnnotationFormats:
 
     def test_vcf_format(self):
         """Test VCF format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        variants = bc.read(os.path.join(TEST_DATA_DIR, "test_variants.vcf"))
+        variants = sc.read(os.path.join(TEST_DATA_DIR, "test_variants.vcf"))
         assert len(variants["chrom"]) == 10
         assert len(variants["sample_names"]) == 3
 
     def test_gff3_format(self):
         """Test GFF3 format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        annotations = bc.read(os.path.join(TEST_DATA_DIR, "test_annotation.gff3"))
+        annotations = sc.read(os.path.join(TEST_DATA_DIR, "test_annotation.gff3"))
         assert len(annotations["seqid"]) > 0
         assert "gene" in annotations["type"]
 
     def test_bed_format(self):
         """Test BED format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        regions = bc.read(os.path.join(TEST_DATA_DIR, "test_regions.bed"))
+        regions = sc.read(os.path.join(TEST_DATA_DIR, "test_regions.bed"))
         assert len(regions["chrom"]) == 7
         assert "chr1" in regions["chrom"]
 
@@ -124,25 +124,25 @@ class TestAlignmentFormats:
 
     def test_sam_format(self):
         """Test SAM format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        alignments = bc.read(os.path.join(TEST_DATA_DIR, "test_alignment.sam"))
+        alignments = sc.read(os.path.join(TEST_DATA_DIR, "test_alignment.sam"))
         assert len(alignments["reads"]) == 8
         assert len(alignments["header"]) == 5
 
     def test_stockholm_format(self):
         """Test Stockholm format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        alignments = bc.read(os.path.join(TEST_DATA_DIR, "test_alignment.sto"))
+        alignments = sc.read(os.path.join(TEST_DATA_DIR, "test_alignment.sto"))
         assert len(alignments) == 2
         assert len(alignments[0]["sequences"]) == 5
 
     def test_phylip_format(self):
         """Test PHYLIP format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        alignment = bc.read(os.path.join(TEST_DATA_DIR, "test_alignment.phy"))
+        alignment = sc.read(os.path.join(TEST_DATA_DIR, "test_alignment.phy"))
         assert alignment is not None
 
 
@@ -151,9 +151,9 @@ class TestTreeFormats:
 
     def test_newick_format(self):
         """Test Newick format reading."""
-        import seqcore as bc
+        import seqcore as sc
 
-        trees = bc.read(os.path.join(TEST_DATA_DIR, "test_tree.nwk"))
+        trees = sc.read(os.path.join(TEST_DATA_DIR, "test_tree.nwk"))
         assert len(trees) == 3
         # All trees should be valid Newick strings
         for tree in trees:
@@ -167,9 +167,9 @@ class TestSingleCellFormats:
     def test_h5ad_format(self):
         """Test HDF5/AnnData format reading."""
         pytest.importorskip("h5py", reason="h5py required for HDF5 tests")
-        import seqcore as bc
+        import seqcore as sc
 
-        data = bc.read(os.path.join(TEST_DATA_DIR, "test_single_cell.h5ad"))
+        data = sc.read(os.path.join(TEST_DATA_DIR, "test_single_cell.h5ad"))
         assert data["X"].shape == (100, 50)
         assert "cell_type" in data["obs"]
         assert "_index" in data["var"]
@@ -220,26 +220,26 @@ class TestIOFunctions:
 
     def test_read_function_auto_detect(self):
         """Test that read() auto-detects formats."""
-        import seqcore as bc
+        import seqcore as sc
 
         # FASTA
-        seqs = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        seqs = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
         assert len(seqs) > 0
 
         # PDB
-        struct = bc.read(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
+        struct = sc.read(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
         assert len(struct.atoms) > 0
 
         # VCF
-        vcf = bc.read(os.path.join(TEST_DATA_DIR, "test_variants.vcf"))
+        vcf = sc.read(os.path.join(TEST_DATA_DIR, "test_variants.vcf"))
         assert len(vcf["chrom"]) > 0
 
     def test_explicit_format_parameter(self):
         """Test explicit format parameter."""
-        import seqcore as bc
+        import seqcore as sc
 
         # Read FASTA with explicit format
-        seqs = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"), format="fasta")
+        seqs = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"), format="fasta")
         assert len(seqs) > 0
 
 
@@ -248,9 +248,9 @@ class TestDataIntegrity:
 
     def test_sequence_data_preserved(self):
         """Test that sequence data is preserved correctly."""
-        import seqcore as bc
+        import seqcore as sc
 
-        seqs = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        seqs = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
 
         # BRCA1 should start with ATG
         brca1_idx = seqs.ids.index("BRCA1_human")
@@ -258,9 +258,9 @@ class TestDataIntegrity:
 
     def test_structure_coordinates_valid(self):
         """Test that structure coordinates are valid numbers."""
-        import seqcore as bc
+        import seqcore as sc
 
-        struct = bc.read(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
+        struct = sc.read(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
 
         # Coordinates should be valid floats
         for coord in struct.coordinates:
@@ -269,9 +269,9 @@ class TestDataIntegrity:
 
     def test_variant_positions_valid(self):
         """Test that variant positions are valid."""
-        import seqcore as bc
+        import seqcore as sc
 
-        vcf = bc.read(os.path.join(TEST_DATA_DIR, "test_variants.vcf"))
+        vcf = sc.read(os.path.join(TEST_DATA_DIR, "test_variants.vcf"))
 
         # All positions should be positive integers
         for pos in vcf["pos"]:
@@ -280,9 +280,9 @@ class TestDataIntegrity:
 
     def test_molecule_atoms_valid(self):
         """Test that molecule atoms are valid."""
-        import seqcore as bc
+        import seqcore as sc
 
-        mols = bc.read(os.path.join(TEST_DATA_DIR, "test_molecules.sdf"))
+        mols = sc.read(os.path.join(TEST_DATA_DIR, "test_molecules.sdf"))
 
         for mol in mols:
             # Each molecule should have atoms

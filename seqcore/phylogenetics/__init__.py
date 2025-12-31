@@ -233,7 +233,7 @@ def neighbor_joining(
         PhyloTree object.
 
     Example:
-        >>> tree = bc.neighbor_joining(sequences)
+        >>> tree = sc.neighbor_joining(sequences)
         >>> print(tree.newick())
 
     """
@@ -344,7 +344,7 @@ def upgma(
         PhyloTree object.
 
     Example:
-        >>> tree = bc.upgma(sequences)
+        >>> tree = sc.upgma(sequences)
 
     """
     if isinstance(sequences_or_matrix, np.ndarray):
@@ -429,7 +429,7 @@ def place_sequence(
         Dictionary with placement information.
 
     Example:
-        >>> placement = bc.place_sequence(new_seq, tree, alignment)
+        >>> placement = sc.place_sequence(new_seq, tree, alignment)
 
     """
     from seqcore.alignment import align

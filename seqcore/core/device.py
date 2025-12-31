@@ -24,7 +24,7 @@ def gpu_available() -> bool:
         True if CUDA-capable GPU is available, False otherwise.
 
     Example:
-        >>> if bc.gpu_available():
+        >>> if sc.gpu_available():
         ...     print("GPU acceleration enabled")
 
     """
@@ -44,7 +44,7 @@ def gpu_info() -> dict[str, Any]:
         Dictionary containing GPU device information.
 
     Example:
-        >>> info = bc.gpu_info()
+        >>> info = sc.gpu_info()
         >>> print(info['name'], info['memory_total'])
 
     """
@@ -80,8 +80,8 @@ def device(device_name: str):
         device_name: Device to use ("cpu", "cuda", "cuda:0", "cuda:1", etc.)
 
     Example:
-        >>> with bc.device("cuda:0"):
-        ...     result = bc.align(sequences, reference)
+        >>> with sc.device("cuda:0"):
+        ...     result = sc.align(sequences, reference)
 
     """
     global _current_device
@@ -129,7 +129,7 @@ def clear_gpu_cache():
     Frees unused memory blocks held by the GPU memory pool.
 
     Example:
-        >>> bc.clear_gpu_cache()
+        >>> sc.clear_gpu_cache()
 
     """
     if gpu_available():
@@ -149,7 +149,7 @@ def set_memory_limit(limit: str):
         limit: Memory limit as string (e.g., "8GB", "4096MB")
 
     Example:
-        >>> bc.set_memory_limit("8GB")
+        >>> sc.set_memory_limit("8GB")
 
     """
     global _memory_limit
@@ -182,7 +182,7 @@ def set_batch_size(size: int):
         size: Number of sequences/items to process per batch.
 
     Example:
-        >>> bc.set_batch_size(100_000)
+        >>> sc.set_batch_size(100_000)
 
     """
     global _batch_size
@@ -219,8 +219,8 @@ def timer():
         Timer object with elapsed time in seconds.
 
     Example:
-        >>> with bc.timer() as t:
-        ...     result = bc.align(sequences, reference)
+        >>> with sc.timer() as t:
+        ...     result = sc.align(sequences, reference)
         >>> print(f"Aligned in {t.elapsed:.2f}s")
 
     """

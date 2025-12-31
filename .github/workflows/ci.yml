@@ -75,7 +75,7 @@ jobs:
       - name: Test all file formats
         run: |
           python -c "
-          import seqcore as bc
+          import seqcore as sc
           import sys
 
           formats = [
@@ -101,7 +101,7 @@ jobs:
           failed = 0
           for name, path, check in formats:
               try:
-                  data = bc.read(path)
+                  data = sc.read(path)
                   assert check(data), f'Validation failed for {name}'
                   print(f'✓ {name}')
                   passed += 1

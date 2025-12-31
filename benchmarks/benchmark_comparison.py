@@ -46,15 +46,15 @@ def benchmark_gc_content():
         results["sizes"].append(n_seq)
 
         # Seqcore
-        import seqcore as bc
+        import seqcore as sc
 
-        dna = bc.DNAArray(sequences)
+        dna = sc.DNAArray(sequences)
         gc.collect()
         start = time.perf_counter()
-        gc_bc = bc.gc_content(dna)
-        bc_time = time.perf_counter() - start
-        results["seqcore"].append(bc_time)
-        print(f"  Seqcore:   {bc_time:.4f}s")
+        gc_sc = sc.gc_content(dna)
+        sc_time = time.perf_counter() - start
+        results["seqcore"].append(sc_time)
+        print(f"  Seqcore:   {sc_time:.4f}s")
 
         # Biopython
         try:
@@ -80,8 +80,8 @@ def benchmark_gc_content():
 
         # Speedup
         if results["biopython"][-1]:
-            print(f"  Speedup vs Biopython: {bp_time / bc_time:.1f}x")
-        print(f"  Speedup vs Python: {py_time / bc_time:.1f}x")
+            print(f"  Speedup vs Biopython: {bp_time / sc_time:.1f}x")
+        print(f"  Speedup vs Python: {py_time / sc_time:.1f}x")
 
     return results
 
@@ -121,15 +121,15 @@ def benchmark_translation():
         results["sizes"].append(n_seq)
 
         # Seqcore
-        import seqcore as bc
+        import seqcore as sc
 
-        dna = bc.DNAArray(sequences)
+        dna = sc.DNAArray(sequences)
         gc.collect()
         start = time.perf_counter()
-        proteins = bc.translate(dna)
-        bc_time = time.perf_counter() - start
-        results["seqcore"].append(bc_time)
-        print(f"  Seqcore:   {bc_time:.4f}s")
+        proteins = sc.translate(dna)
+        sc_time = time.perf_counter() - start
+        results["seqcore"].append(sc_time)
+        print(f"  Seqcore:   {sc_time:.4f}s")
 
         # Biopython
         try:
@@ -158,8 +158,8 @@ def benchmark_translation():
 
         # Speedup
         if results["biopython"][-1]:
-            print(f"  Speedup vs Biopython: {bp_time / bc_time:.1f}x")
-        print(f"  Speedup vs Python: {py_time / bc_time:.1f}x")
+            print(f"  Speedup vs Biopython: {bp_time / sc_time:.1f}x")
+        print(f"  Speedup vs Python: {py_time / sc_time:.1f}x")
 
     return results
 
@@ -187,15 +187,15 @@ def benchmark_reverse_complement():
         results["sizes"].append(n_seq)
 
         # Seqcore
-        import seqcore as bc
+        import seqcore as sc
 
-        dna = bc.DNAArray(sequences)
+        dna = sc.DNAArray(sequences)
         gc.collect()
         start = time.perf_counter()
-        rc = bc.reverse_complement(dna)
-        bc_time = time.perf_counter() - start
-        results["seqcore"].append(bc_time)
-        print(f"  Seqcore:   {bc_time:.4f}s")
+        rc = sc.reverse_complement(dna)
+        sc_time = time.perf_counter() - start
+        results["seqcore"].append(sc_time)
+        print(f"  Seqcore:   {sc_time:.4f}s")
 
         # Biopython
         try:
@@ -221,8 +221,8 @@ def benchmark_reverse_complement():
 
         # Speedup
         if results["biopython"][-1]:
-            print(f"  Speedup vs Biopython: {bp_time / bc_time:.1f}x")
-        print(f"  Speedup vs Python: {py_time / bc_time:.1f}x")
+            print(f"  Speedup vs Biopython: {bp_time / sc_time:.1f}x")
+        print(f"  Speedup vs Python: {py_time / sc_time:.1f}x")
 
     return results
 
@@ -250,14 +250,14 @@ def benchmark_file_io():
             temp_path = f.name
 
         # Seqcore
-        import seqcore as bc
+        import seqcore as sc
 
         gc.collect()
         start = time.perf_counter()
-        data = bc.read(temp_path)
-        bc_time = time.perf_counter() - start
-        results["seqcore"].append(bc_time)
-        print(f"  Seqcore:   {bc_time:.4f}s")
+        data = sc.read(temp_path)
+        sc_time = time.perf_counter() - start
+        results["seqcore"].append(sc_time)
+        print(f"  Seqcore:   {sc_time:.4f}s")
 
         # Biopython
         try:
@@ -269,7 +269,7 @@ def benchmark_file_io():
             bp_time = time.perf_counter() - start
             results["biopython"].append(bp_time)
             print(f"  Biopython: {bp_time:.4f}s")
-            print(f"  Speedup: {bp_time / bc_time:.1f}x")
+            print(f"  Speedup: {bp_time / sc_time:.1f}x")
         except ImportError:
             results["biopython"].append(None)
             print("  Biopython: not installed")
@@ -295,14 +295,14 @@ def benchmark_pairwise_alignment():
         results["sizes"].append(seq_length)
 
         # Seqcore
-        import seqcore as bc
+        import seqcore as sc
 
         gc.collect()
         start = time.perf_counter()
-        result = bc.align(seq1, seq2)
-        bc_time = time.perf_counter() - start
-        results["seqcore"].append(bc_time)
-        print(f"  Seqcore:   {bc_time:.4f}s (score: {result.score})")
+        result = sc.align(seq1, seq2)
+        sc_time = time.perf_counter() - start
+        results["seqcore"].append(sc_time)
+        print(f"  Seqcore:   {sc_time:.4f}s (score: {result.score})")
 
         # Biopython
         try:
@@ -314,7 +314,7 @@ def benchmark_pairwise_alignment():
             bp_time = time.perf_counter() - start
             results["biopython"].append(bp_time)
             print(f"  Biopython: {bp_time:.4f}s")
-            print(f"  Speedup: {bp_time / bc_time:.1f}x")
+            print(f"  Speedup: {bp_time / sc_time:.1f}x")
         except ImportError:
             results["biopython"].append(None)
             print("  Biopython: not installed")
@@ -334,13 +334,13 @@ def generate_summary_table(all_results: list[dict]):
     for result in all_results:
         op = result["operation"]
         for i, size in enumerate(result["sizes"]):
-            bc = result["seqcore"][i]
+            sc_val = result["seqcore"][i]
             bp = result.get("biopython", [None] * len(result["sizes"]))[i]
             if bp:
-                speedup = f"{bp / bc:.1f}x"
-                print(f"| {op:20} | {size:12} | {bc:.4f}s | {bp:.4f}s | {speedup:7} |")
+                speedup = f"{bp / sc_val:.1f}x"
+                print(f"| {op:20} | {size:12} | {sc_val:.4f}s | {bp:.4f}s | {speedup:7} |")
             else:
-                print(f"| {op:20} | {size:12} | {bc:.4f}s | N/A | N/A |")
+                print(f"| {op:20} | {size:12} | {sc_val:.4f}s | N/A | N/A |")
 
 
 def main():

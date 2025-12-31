@@ -30,7 +30,7 @@ def extract_kmers(
         List of k-mer lists for each sequence.
 
     Example:
-        >>> kmers = bc.extract_kmers(sequences, k=21)
+        >>> kmers = sc.extract_kmers(sequences, k=21)
 
     """
     from seqcore.core.arrays import BioArray
@@ -62,7 +62,7 @@ def count_kmers(
         Dictionary mapping k-mers to counts/frequencies.
 
     Example:
-        >>> kmer_counts = bc.count_kmers(sequences, k=21)
+        >>> kmer_counts = sc.count_kmers(sequences, k=21)
 
     """
     all_kmers = []
@@ -96,7 +96,7 @@ def kmer_spectrum(
         Array where index i contains number of k-mers with count i.
 
     Example:
-        >>> spectrum = bc.kmer_spectrum(sequences, k=21)
+        >>> spectrum = sc.kmer_spectrum(sequences, k=21)
         >>> # spectrum[5] = number of k-mers appearing exactly 5 times
 
     """
@@ -128,7 +128,7 @@ def kmer_distance(
         Distance value.
 
     Example:
-        >>> dist = bc.kmer_distance(seq1, seq2, k=5)
+        >>> dist = sc.kmer_distance(seq1, seq2, k=5)
 
     """
     from seqcore.core.arrays import BioArray

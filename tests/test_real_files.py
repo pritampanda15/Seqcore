@@ -17,19 +17,19 @@ class TestFastaIO:
 
     def test_read_fasta(self):
         """Test reading real FASTA file."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
         assert len(sequences) == 5
         assert "BRCA1_human" in sequences.ids
         assert "TP53_human" in sequences.ids
 
     def test_gc_content_real_sequences(self):
         """Test GC content on real gene sequences."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
-        gc = bc.gc_content(sequences)
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        gc = sc.gc_content(sequences)
 
         assert len(gc) == 5
         assert all(0 <= g <= 100 for g in gc)
@@ -39,10 +39,10 @@ class TestFastaIO:
 
     def test_translation_real_sequences(self):
         """Test translation of real gene sequences."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
-        proteins = bc.translate(sequences)
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        proteins = sc.translate(sequences)
 
         assert len(proteins) == 5
         # All sequences start with ATG, so proteins should start with M
@@ -51,14 +51,14 @@ class TestFastaIO:
 
     def test_reverse_complement(self):
         """Test reverse complement of real sequences."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
-        rc = bc.reverse_complement(sequences)
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        rc = sc.reverse_complement(sequences)
 
         assert len(rc) == len(sequences)
         # Double reverse complement should give original
-        rc2 = bc.reverse_complement(rc)
+        rc2 = sc.reverse_complement(rc)
         for orig, double_rc in zip(sequences.sequences, rc2.sequences):
             assert orig == double_rc
 
@@ -68,17 +68,17 @@ class TestFastqIO:
 
     def test_read_fastq(self):
         """Test reading real FASTQ file."""
-        import seqcore as bc
+        import seqcore as sc
 
-        reads = bc.read_fastq(os.path.join(TEST_DATA_DIR, "test_reads.fastq"))
+        reads = sc.read_fastq(os.path.join(TEST_DATA_DIR, "test_reads.fastq"))
         assert len(reads) == 5
         assert reads.qualities is not None
 
     def test_quality_scores(self):
         """Test quality score parsing."""
-        import seqcore as bc
+        import seqcore as sc
 
-        reads = bc.read_fastq(os.path.join(TEST_DATA_DIR, "test_reads.fastq"))
+        reads = sc.read_fastq(os.path.join(TEST_DATA_DIR, "test_reads.fastq"))
 
         # Check that quality scores are in valid Phred range
         for i, q in enumerate(reads.qualities):
@@ -87,10 +87,10 @@ class TestFastqIO:
 
     def test_quality_filter(self):
         """Test quality filtering."""
-        import seqcore as bc
+        import seqcore as sc
 
-        reads = bc.read_fastq(os.path.join(TEST_DATA_DIR, "test_reads.fastq"))
-        passed = bc.quality_filter(reads, min_q=20, max_n=0.1)
+        reads = sc.read_fastq(os.path.join(TEST_DATA_DIR, "test_reads.fastq"))
+        passed = sc.quality_filter(reads, min_q=20, max_n=0.1)
 
         assert len(passed) == len(reads)
         assert passed.dtype == bool
@@ -101,18 +101,18 @@ class TestPDBStructure:
 
     def test_read_pdb(self):
         """Test reading real PDB file."""
-        import seqcore as bc
+        import seqcore as sc
 
-        structure = bc.read_pdb(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
+        structure = sc.read_pdb(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
         assert len(structure) > 0
         assert len(structure.chains) == 2  # A and B chains
 
     def test_distance_matrix(self):
         """Test CA distance matrix calculation."""
-        import seqcore as bc
+        import seqcore as sc
 
-        structure = bc.read_pdb(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
-        dm = bc.distance_matrix(structure, selection="CA")
+        structure = sc.read_pdb(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
+        dm = sc.distance_matrix(structure, selection="CA")
 
         # Distance matrix should be square and symmetric
         assert dm.shape[0] == dm.shape[1]
@@ -122,10 +122,10 @@ class TestPDBStructure:
 
     def test_find_contacts(self):
         """Test contact finding."""
-        import seqcore as bc
+        import seqcore as sc
 
-        structure = bc.read_pdb(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
-        contacts = bc.find_contacts(structure, cutoff=4.0)
+        structure = sc.read_pdb(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
+        contacts = sc.find_contacts(structure, cutoff=4.0)
 
         assert isinstance(contacts, list)
         for contact in contacts:
@@ -133,9 +133,9 @@ class TestPDBStructure:
 
     def test_chain_selection(self):
         """Test chain selection."""
-        import seqcore as bc
+        import seqcore as sc
 
-        structure = bc.read_pdb(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
+        structure = sc.read_pdb(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
         chain_a = structure.select(chain="A")
 
         assert len(chain_a) < len(structure)
@@ -144,9 +144,9 @@ class TestPDBStructure:
     def test_to_dataframe(self):
         """Test conversion to DataFrame."""
         pytest.importorskip("pandas", reason="pandas required for DataFrame tests")
-        import seqcore as bc
+        import seqcore as sc
 
-        structure = bc.read_pdb(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
+        structure = sc.read_pdb(os.path.join(TEST_DATA_DIR, "test_protein.pdb"))
         df = structure.to_dataframe()
 
         assert len(df) == len(structure)
@@ -168,33 +168,33 @@ class TestVCFPopulation:
 
     def test_allele_frequency(self):
         """Test allele frequency calculation."""
-        import seqcore as bc
+        import seqcore as sc
         from seqcore.io import read_vcf
 
         variants = read_vcf(os.path.join(TEST_DATA_DIR, "test_variants.vcf"))
-        af = bc.allele_frequency(variants)
+        af = sc.allele_frequency(variants)
 
         assert len(af) == 10
         assert all(0 <= f <= 1 for f in af)
 
     def test_heterozygosity(self):
         """Test heterozygosity calculation."""
-        import seqcore as bc
+        import seqcore as sc
         from seqcore.io import read_vcf
 
         variants = read_vcf(os.path.join(TEST_DATA_DIR, "test_variants.vcf"))
-        het = bc.heterozygosity(variants)
+        het = sc.heterozygosity(variants)
 
         assert len(het) == 10
         assert all(0 <= h <= 1 for h in het)
 
     def test_linkage_disequilibrium(self):
         """Test LD matrix calculation."""
-        import seqcore as bc
+        import seqcore as sc
         from seqcore.io import read_vcf
 
         variants = read_vcf(os.path.join(TEST_DATA_DIR, "test_variants.vcf"))
-        ld = bc.linkage_disequilibrium(variants)
+        ld = sc.linkage_disequilibrium(variants)
 
         assert ld.shape == (10, 10)
         # Diagonal should be 1
@@ -206,17 +206,17 @@ class TestSDFMolecules:
 
     def test_read_sdf(self):
         """Test reading real SDF file."""
-        import seqcore as bc
+        import seqcore as sc
 
-        molecules = bc.read_sdf(os.path.join(TEST_DATA_DIR, "test_molecules.sdf"))
+        molecules = sc.read_sdf(os.path.join(TEST_DATA_DIR, "test_molecules.sdf"))
         assert len(molecules) == 3
         assert molecules[0].name == "Aspirin"
 
     def test_molecule_properties(self):
         """Test molecule has atoms and bonds."""
-        import seqcore as bc
+        import seqcore as sc
 
-        molecules = bc.read_sdf(os.path.join(TEST_DATA_DIR, "test_molecules.sdf"))
+        molecules = sc.read_sdf(os.path.join(TEST_DATA_DIR, "test_molecules.sdf"))
 
         for mol in molecules:
             assert len(mol.atoms) > 0
@@ -225,23 +225,23 @@ class TestSDFMolecules:
 
     def test_fingerprints(self):
         """Test fingerprint generation."""
-        import seqcore as bc
+        import seqcore as sc
 
-        aspirin = bc.Molecule.from_smiles("CC(=O)OC1=CC=CC=C1C(=O)O")
-        caffeine = bc.Molecule.from_smiles("CN1C=NC2=C1C(=O)N(C(=O)N2C)C")
+        aspirin = sc.Molecule.from_smiles("CC(=O)OC1=CC=CC=C1C(=O)O")
+        caffeine = sc.Molecule.from_smiles("CN1C=NC2=C1C(=O)N(C(=O)N2C)C")
 
-        fps = bc.morgan_fingerprint([aspirin, caffeine])
+        fps = sc.morgan_fingerprint([aspirin, caffeine])
         assert fps.shape == (2, 2048)
 
     def test_tanimoto_similarity(self):
         """Test Tanimoto similarity."""
-        import seqcore as bc
+        import seqcore as sc
 
         # Use molecules from file which have actual atom data
-        molecules = bc.read_sdf(os.path.join(TEST_DATA_DIR, "test_molecules.sdf"))
+        molecules = sc.read_sdf(os.path.join(TEST_DATA_DIR, "test_molecules.sdf"))
 
-        fps = bc.morgan_fingerprint(molecules[:2])
-        sim = bc.tanimoto_similarity(fps)
+        fps = sc.morgan_fingerprint(molecules[:2])
+        sim = sc.tanimoto_similarity(fps)
 
         assert sim.shape == (2, 2)
         # Similarity matrix should be symmetric
@@ -255,20 +255,20 @@ class TestAlignment:
 
     def test_pairwise_alignment(self):
         """Test pairwise alignment with real sequences."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
-        result = bc.align(sequences[0], sequences[1])
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        result = sc.align(sequences[0], sequences[1])
 
         assert result.score != 0
         assert 0 <= result.identity <= 1
 
     def test_distance_matrix(self):
         """Test pairwise distance matrix."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
-        dm = bc.pairwise_distance(sequences, metric="edit")
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        dm = sc.pairwise_distance(sequences, metric="edit")
 
         assert dm.shape == (5, 5)
         assert np.allclose(dm, dm.T)  # Symmetric
@@ -276,10 +276,10 @@ class TestAlignment:
 
     def test_pattern_finding(self):
         """Test pattern finding."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
-        matches = bc.find_pattern(sequences, "ATG")
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        matches = sc.find_pattern(sequences, "ATG")
 
         assert len(matches) == 5
         # All sequences should have at least one ATG (start codon)
@@ -292,30 +292,30 @@ class TestPhylogenetics:
 
     def test_neighbor_joining(self):
         """Test NJ tree construction."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
-        tree = bc.neighbor_joining(sequences)
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        tree = sc.neighbor_joining(sequences)
 
         assert len(tree.get_leaves()) == 5
         assert tree.newick().endswith(";")
 
     def test_upgma(self):
         """Test UPGMA tree construction."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
-        tree = bc.upgma(sequences)
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        tree = sc.upgma(sequences)
 
         assert len(tree.get_leaves()) == 5
         assert tree.newick().endswith(";")
 
     def test_tree_distance(self):
         """Test patristic distance."""
-        import seqcore as bc
+        import seqcore as sc
 
-        sequences = bc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
-        tree = bc.neighbor_joining(sequences)
+        sequences = sc.read(os.path.join(TEST_DATA_DIR, "test_sequences.fasta"))
+        tree = sc.neighbor_joining(sequences)
 
         leaves = tree.get_leaves()
         dist = tree.distance(leaves[0], leaves[1])
@@ -327,21 +327,21 @@ class TestPopulationSequences:
 
     def test_nucleotide_diversity(self):
         """Test nucleotide diversity calculation."""
-        import seqcore as bc
+        import seqcore as sc
 
         # Identical sequences should have pi = 0
         identical = ["ACGTACGT", "ACGTACGT", "ACGTACGT"]
-        pi = bc.nucleotide_diversity(identical)
+        pi = sc.nucleotide_diversity(identical)
         assert pi == 0.0
 
         # Different sequences should have pi > 0
         different = ["ACGTACGT", "TGCATGCA"]
-        pi = bc.nucleotide_diversity(different)
+        pi = sc.nucleotide_diversity(different)
         assert pi > 0
 
     def test_tajimas_d(self):
         """Test Tajima's D calculation."""
-        import seqcore as bc
+        import seqcore as sc
 
         sequences = [
             "ACGTACGTACGTACGT",
@@ -349,5 +349,5 @@ class TestPopulationSequences:
             "ACGTACGTACGTACGT",
             "ACGTACGTACGTACGT",
         ]
-        d = bc.tajimas_d(sequences)
+        d = sc.tajimas_d(sequences)
         assert isinstance(d, float)

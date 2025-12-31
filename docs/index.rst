@@ -30,19 +30,19 @@ Installation::
 
 Basic usage::
 
-    import seqcore as bc
+    import seqcore as sc
 
     # Read sequences
-    sequences = bc.read("sequences.fasta")
+    sequences = sc.read("sequences.fasta")
 
     # Calculate GC content
-    gc = bc.gc_content(sequences)
+    gc = sc.gc_content(sequences)
 
     # Translate to protein
-    proteins = bc.translate(sequences)
+    proteins = sc.translate(sequences)
 
     # Build phylogenetic tree
-    tree = bc.neighbor_joining(sequences)
+    tree = sc.neighbor_joining(sequences)
 
 Contents
 --------

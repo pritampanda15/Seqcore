@@ -107,9 +107,9 @@ def read(filepath: str, format: str | None = None) -> Any:
         Appropriate data structure based on file format.
 
     Example:
-        >>> data = bc.read("sequences.fasta")
-        >>> data = bc.read("structure.pdb")
-        >>> data = bc.read("reads.fastq.gz")
+        >>> data = sc.read("sequences.fasta")
+        >>> data = sc.read("structure.pdb")
+        >>> data = sc.read("reads.fastq.gz")
 
     """
     if format is None:
@@ -161,7 +161,7 @@ def read_fasta(filepath: str) -> DNAArray:
         DNAArray (or ProteinArray if detected).
 
     Example:
-        >>> sequences = bc.read_fasta("sequences.fa")
+        >>> sequences = sc.read_fasta("sequences.fa")
 
     """
     from seqcore.core.arrays import DNAArray, ProteinArray
@@ -212,7 +212,7 @@ def read_fastq(
         DNAArray with quality scores.
 
     Example:
-        >>> reads = bc.read_fastq("reads.fq.gz")
+        >>> reads = sc.read_fastq("reads.fq.gz")
 
     """
     import numpy as np
@@ -263,7 +263,7 @@ def read_pdb(filepath: str) -> StructureArray:
         StructureArray instance.
 
     Example:
-        >>> structure = bc.read_pdb("protein.pdb")
+        >>> structure = sc.read_pdb("protein.pdb")
 
     """
     from seqcore.core.structure import StructureArray
@@ -281,7 +281,7 @@ def read_mmcif(filepath: str) -> StructureArray:
         StructureArray instance.
 
     Example:
-        >>> structure = bc.read_mmcif("structure.cif")
+        >>> structure = sc.read_mmcif("structure.cif")
 
     """
     from seqcore.core.structure import StructureArray
@@ -299,7 +299,7 @@ def read_sdf(filepath: str) -> list:
         List of Molecule objects.
 
     Example:
-        >>> mols = bc.read_sdf("molecules.sdf")
+        >>> mols = sc.read_sdf("molecules.sdf")
 
     """
     from seqcore.molecules import Molecule
@@ -332,7 +332,7 @@ def read_vcf(filepath: str) -> dict:
         Dictionary with variant data.
 
     Example:
-        >>> variants = bc.read_vcf("variants.vcf")
+        >>> variants = sc.read_vcf("variants.vcf")
 
     """
     variants = {
@@ -385,7 +385,7 @@ def read_mol2(filepath: str) -> list:
         List of Molecule objects.
 
     Example:
-        >>> mols = bc.read_mol2("molecules.mol2")
+        >>> mols = sc.read_mol2("molecules.mol2")
 
     """
     import numpy as np
@@ -490,7 +490,7 @@ def read_gff(filepath: str) -> dict:
         Dictionary with annotation data.
 
     Example:
-        >>> annotations = bc.read_gff("annotation.gff3")
+        >>> annotations = sc.read_gff("annotation.gff3")
 
     """
     annotations = {
@@ -547,7 +547,7 @@ def read_bed(filepath: str) -> dict:
         Dictionary with BED data.
 
     Example:
-        >>> regions = bc.read_bed("regions.bed")
+        >>> regions = sc.read_bed("regions.bed")
 
     """
     regions = {
@@ -608,7 +608,7 @@ def read_genbank(filepath: str) -> list:
         List of dictionaries with sequence data and features.
 
     Example:
-        >>> records = bc.read_genbank("sequence.gb")
+        >>> records = sc.read_genbank("sequence.gb")
 
     """
     records = []
@@ -681,7 +681,7 @@ def read_embl(filepath: str) -> list:
         List of dictionaries with sequence data.
 
     Example:
-        >>> records = bc.read_embl("sequence.embl")
+        >>> records = sc.read_embl("sequence.embl")
 
     """
     records = []
@@ -742,7 +742,7 @@ def read_newick(filepath: str) -> list:
         List of tree strings (one per line).
 
     Example:
-        >>> trees = bc.read_newick("trees.nwk")
+        >>> trees = sc.read_newick("trees.nwk")
 
     """
     trees = []
@@ -766,7 +766,7 @@ def read_stockholm(filepath: str) -> dict:
         Dictionary with alignment data.
 
     Example:
-        >>> msa = bc.read_stockholm("alignment.sto")
+        >>> msa = sc.read_stockholm("alignment.sto")
 
     """
     alignments = []
@@ -839,7 +839,7 @@ def read_phylip(filepath: str) -> dict:
         Dictionary with alignment data.
 
     Example:
-        >>> msa = bc.read_phylip("alignment.phy")
+        >>> msa = sc.read_phylip("alignment.phy")
 
     """
     sequences = {}
@@ -890,7 +890,7 @@ def read_sam(filepath: str) -> dict:
         Dictionary with alignment data.
 
     Example:
-        >>> alignments = bc.read_sam("alignments.sam")
+        >>> alignments = sc.read_sam("alignments.sam")
 
     """
     alignments = {
@@ -950,7 +950,7 @@ def read_h5ad(filepath: str) -> dict:
         Dictionary with single-cell data.
 
     Example:
-        >>> adata = bc.read_h5ad("data.h5ad")
+        >>> adata = sc.read_h5ad("data.h5ad")
 
     """
     try:
@@ -1030,7 +1030,7 @@ def read_stream(
         BioArray batches.
 
     Example:
-        >>> for batch in bc.read_stream("huge.fastq.gz", batch_size=100000):
+        >>> for batch in sc.read_stream("huge.fastq.gz", batch_size=100000):
         ...     results = process(batch)
 
     """
@@ -1120,8 +1120,8 @@ def write(data: Any, filepath: str, format: str | None = None, append: bool = Fa
         append: If True, append to existing file.
 
     Example:
-        >>> bc.write(sequences, "output.fasta")
-        >>> bc.write(structure, "output.pdb")
+        >>> sc.write(sequences, "output.fasta")
+        >>> sc.write(structure, "output.pdb")
 
     """
     from seqcore.core.arrays import BioArray
@@ -1167,8 +1167,8 @@ def fetch(identifier: str, database: str | None = None) -> Any:
         Fetched data (sequence or structure).
 
     Example:
-        >>> seq = bc.fetch("NP_000509")  # UniProt/NCBI
-        >>> structure = bc.fetch("1ABC")  # PDB
+        >>> seq = sc.fetch("NP_000509")  # UniProt/NCBI
+        >>> structure = sc.fetch("1ABC")  # PDB
 
     """
     import tempfile

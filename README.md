@@ -1,7 +1,7 @@
 # Seqcore
 <p align="center">
-  <a href="https://github.com/pritampanda15/Seqcore">
-    <img src="https://github.com/pritampanda15/Seqcore/blob/main/logo/seqcore_logo.png" width="400" alt="Seqcore Logo"/> 
+  <a href="https://github.com/pritampanda15/seqcore">
+    <img src="https://github.com/pritampanda15/seqcore/blob/main/logo/seqcore_logo.png" width="400" alt="Seqcore Logo"/>
   </a>
 </p>
 
@@ -28,25 +28,25 @@ pip install seqcore[full]
 ## Quick Start
 
 ```python
-import seqcore as bc
+import seqcore as sc
 
 # DNA sequences - efficient 2-bit encoding
-dna = bc.DNAArray("ACGTACGTACGT" * 1_000_000)
+dna = sc.DNAArray("ACGTACGTACGT" * 1_000_000)
 
 # Batch operations
-sequences = bc.DNAArray([
+sequences = sc.DNAArray([
     "ACGTACGT",
     "TGCATGCA",
     "GGGGCCCC",
 ])
 
 # Vectorized operations
-gc = bc.gc_content(sequences)
-lengths = bc.length(sequences)
-rev_comp = bc.reverse_complement(sequences)
+gc = sc.gc_content(sequences)
+lengths = sc.length(sequences)
+rev_comp = sc.reverse_complement(sequences)
 
 # Translation
-proteins = bc.translate(sequences)
+proteins = sc.translate(sequences)
 ```
 
 ## Features
@@ -55,105 +55,105 @@ proteins = bc.translate(sequences)
 
 ```python
 # GC content, molecular weight, length
-gc = bc.gc_content(dna)
-mw = bc.molecular_weight(protein)
+gc = sc.gc_content(dna)
+mw = sc.molecular_weight(protein)
 
 # Transcription and translation
-rna = bc.transcribe(dna)
-protein = bc.translate(dna, frame=0)
+rna = sc.transcribe(dna)
+protein = sc.translate(dna, frame=0)
 
 # K-mer operations
-kmers = bc.extract_kmers(sequences, k=21)
-kmer_counts = bc.count_kmers(sequences, k=21)
+kmers = sc.extract_kmers(sequences, k=21)
+kmer_counts = sc.count_kmers(sequences, k=21)
 ```
 
 ### Sequence Alignment
 
 ```python
 # Pairwise alignment
-result = bc.align(query, reference)
+result = sc.align(query, reference)
 print(result.score, result.identity, result.cigar)
 
 # Distance matrices
-dm = bc.pairwise_distance(sequences, metric="edit")
+dm = sc.pairwise_distance(sequences, metric="edit")
 
 # Pattern matching
-matches = bc.find_pattern(sequences, "ATG[ACGT]{30,100}TAA")
+matches = sc.find_pattern(sequences, "ATG[ACGT]{30,100}TAA")
 ```
 
 ### File I/O
 
 ```python
 # Auto-detect format
-data = bc.read("sequences.fasta")
-data = bc.read("structure.pdb")
-data = bc.read("reads.fastq.gz")
+data = sc.read("sequences.fasta")
+data = sc.read("structure.pdb")
+data = sc.read("reads.fastq.gz")
 
 # Streaming for large files
-for batch in bc.read_stream("huge.fastq.gz", batch_size=100_000):
+for batch in sc.read_stream("huge.fastq.gz", batch_size=100_000):
     results = process(batch)
 
 # Database fetching
-seq = bc.fetch("NP_000509")      # NCBI/UniProt
-structure = bc.fetch("1ABC")     # PDB
+seq = sc.fetch("NP_000509")      # NCBI/UniProt
+structure = sc.fetch("1ABC")     # PDB
 ```
 
 ### Structural Biology
 
 ```python
 # Load structure
-structure = bc.read("protein.pdb")
+structure = sc.read("protein.pdb")
 
 # Access data
 print(structure.chains)      # ['A', 'B']
 print(structure.n_residues)  # 265
 
 # Distance matrix
-dm = bc.distance_matrix(structure, selection="CA")
+dm = sc.distance_matrix(structure, selection="CA")
 
 # Find contacts
-contacts = bc.find_contacts(structure, cutoff=4.0)
+contacts = sc.find_contacts(structure, cutoff=4.0)
 
 # RMSD calculation
-rmsd = bc.rmsd(structure1, structure2, align=True)
+rmsd = sc.rmsd(structure1, structure2, align=True)
 
 # Surface analysis
-sasa = bc.sasa(structure)
-surface = bc.surface_residues(structure, threshold=25.0)
+sasa = sc.sasa(structure)
+surface = sc.surface_residues(structure, threshold=25.0)
 
 # Binding pockets
-pockets = bc.find_pockets(structure)
+pockets = sc.find_pockets(structure)
 ```
 
 ### Drug Design
 
 ```python
 # Small molecules
-mol = bc.Molecule.from_smiles("CCO")
+mol = sc.Molecule.from_smiles("CCO")
 
 # Molecular properties
-mw = bc.molecular_weight(molecules)
-logp = bc.logp(molecules)
-hbd = bc.h_bond_donors(molecules)
+mw = sc.molecular_weight(molecules)
+logp = sc.logp(molecules)
+hbd = sc.h_bond_donors(molecules)
 
 # ADMET filters
-passes_lipinski = bc.lipinski_filter(molecules)
-bbb_permeable = bc.bbb_filter(molecules)
+passes_lipinski = sc.lipinski_filter(molecules)
+bbb_permeable = sc.bbb_filter(molecules)
 
 # Fingerprints and similarity
-fps = bc.morgan_fingerprint(molecules, radius=2)
-similarity = bc.tanimoto_similarity(fps)
+fps = sc.morgan_fingerprint(molecules, radius=2)
+similarity = sc.tanimoto_similarity(fps)
 
 # Substructure search
-matches = bc.substructure_search(molecules, "c1ccccc1")
+matches = sc.substructure_search(molecules, "c1ccccc1")
 ```
 
 ### Phylogenetics
 
 ```python
 # Tree construction
-tree = bc.neighbor_joining(sequences)
-tree = bc.upgma(sequences)
+tree = sc.neighbor_joining(sequences)
+tree = sc.upgma(sequences)
 
 # Tree operations
 print(tree.newick())
@@ -165,37 +165,37 @@ subtree = tree.prune(["A", "B", "C"])
 
 ```python
 # Variant analysis
-variants = bc.read("variants.vcf")
-af = bc.allele_frequency(variants)
-maf = bc.minor_allele_frequency(variants)
+variants = sc.read("variants.vcf")
+af = sc.allele_frequency(variants)
+maf = sc.minor_allele_frequency(variants)
 
 # Population statistics
-fst = bc.fst(pop1, pop2)
-pi = bc.nucleotide_diversity(sequences)
-d = bc.tajimas_d(sequences)
+fst = sc.fst(pop1, pop2)
+pi = sc.nucleotide_diversity(sequences)
+d = sc.tajimas_d(sequences)
 
 # Linkage disequilibrium
-ld = bc.linkage_disequilibrium(variants)
+ld = sc.linkage_disequilibrium(variants)
 ```
 
 ### GPU Acceleration
 
 ```python
 # Check GPU availability
-if bc.gpu_available():
-    print(bc.gpu_info())
+if sc.gpu_available():
+    print(sc.gpu_info())
 
 # Device context
-with bc.device("cuda:0"):
-    result = bc.align(sequences, reference)
+with sc.device("cuda:0"):
+    result = sc.align(sequences, reference)
 
 # Memory management
-bc.set_memory_limit("8GB")
-bc.clear_gpu_cache()
+sc.set_memory_limit("8GB")
+sc.clear_gpu_cache()
 
 # Timing
-with bc.timer() as t:
-    result = bc.align(sequences, reference)
+with sc.timer() as t:
+    result = sc.align(sequences, reference)
 print(f"Completed in {t.elapsed:.2f}s")
 ```
 
@@ -204,7 +204,7 @@ print(f"Completed in {t.elapsed:.2f}s")
 ```python
 # NumPy
 arr = sequences.to_numpy()
-sequences = bc.DNAArray.from_numpy(arr)
+sequences = sc.DNAArray.from_numpy(arr)
 
 # pandas
 df = sequences.to_dataframe()
@@ -212,11 +212,11 @@ df = structure.to_dataframe()
 
 # Biopython
 bio_seq = sequences[0].to_biopython()
-bc_seq = bc.DNAArray.from_biopython(bio_seq)
+sc_seq = sc.DNAArray.from_biopython(bio_seq)
 
 # RDKit
 rdkit_mol = molecule.to_rdkit()
-bc_mol = bc.Molecule.from_rdkit(rdkit_mol)
+sc_mol = sc.Molecule.from_rdkit(rdkit_mol)
 ```
 
 ## Performance
@@ -267,7 +267,7 @@ If you use Seqcore in your research, please cite:
   title = {Seqcore: High-performance biological sequence analysis},
   url = {https://github.com/pritampanda15/seqcore},
   version = {0.1.0},
-  year = {2026},
+  year = {2025},
   institution = {Stanford University}
 }
 ```

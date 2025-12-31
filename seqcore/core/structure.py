@@ -38,7 +38,7 @@ class StructureArray:
     for fast vectorized operations.
 
     Example:
-        >>> structure = bc.StructureArray.from_pdb("protein.pdb")
+        >>> structure = sc.StructureArray.from_pdb("protein.pdb")
         >>> print(structure.chains)  # ['A', 'B', 'C']
         >>> coords = structure.coordinates  # (n_atoms, 3) array
 
@@ -107,7 +107,7 @@ class StructureArray:
             StructureArray instance.
 
         Example:
-            >>> structure = bc.StructureArray.from_pdb("1abc.pdb")
+            >>> structure = sc.StructureArray.from_pdb("1asc.pdb")
 
         """
         coords = []

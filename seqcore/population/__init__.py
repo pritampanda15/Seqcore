@@ -28,7 +28,7 @@ def allele_frequency(
         Array of alternate allele frequencies.
 
     Example:
-        >>> af = bc.allele_frequency(variants)
+        >>> af = sc.allele_frequency(variants)
 
     """
     if "samples" not in variants or not variants["samples"]:
@@ -73,7 +73,7 @@ def minor_allele_frequency(variants: dict[str, Any]) -> np.ndarray:
         Array of minor allele frequencies (0 to 0.5).
 
     Example:
-        >>> maf = bc.minor_allele_frequency(variants)
+        >>> maf = sc.minor_allele_frequency(variants)
 
     """
     af = allele_frequency(variants)
@@ -90,7 +90,7 @@ def heterozygosity(variants: dict[str, Any]) -> np.ndarray:
         Array of heterozygosity values.
 
     Example:
-        >>> het = bc.heterozygosity(variants)
+        >>> het = sc.heterozygosity(variants)
 
     """
     if "samples" not in variants or not variants["samples"]:
@@ -138,7 +138,7 @@ def fst(
         Fst value (0 to 1).
 
     Example:
-        >>> fst_value = bc.fst(pop1_variants, pop2_variants)
+        >>> fst_value = sc.fst(pop1_variants, pop2_variants)
 
     """
     af1 = allele_frequency(population1, sample_indices1)
@@ -175,7 +175,7 @@ def nucleotide_diversity(
         Nucleotide diversity value.
 
     Example:
-        >>> pi = bc.nucleotide_diversity(sequences)
+        >>> pi = sc.nucleotide_diversity(sequences)
 
     """
     from seqcore.core.arrays import BioArray
@@ -219,7 +219,7 @@ def tajimas_d(
         Tajima's D value.
 
     Example:
-        >>> d = bc.tajimas_d(sequences)
+        >>> d = sc.tajimas_d(sequences)
 
     """
     from seqcore.core.arrays import BioArray
@@ -283,7 +283,7 @@ def linkage_disequilibrium(
         Square matrix of r^2 values.
 
     Example:
-        >>> ld_matrix = bc.linkage_disequilibrium(variants)
+        >>> ld_matrix = sc.linkage_disequilibrium(variants)
 
     """
     if "samples" not in variants or not variants["samples"]:
@@ -324,7 +324,7 @@ def r_squared(
         r^2 value (0 to 1).
 
     Example:
-        >>> r2 = bc.r_squared(variants, 0, 1)
+        >>> r2 = sc.r_squared(variants, 0, 1)
 
     """
     if "samples" not in variants or not variants["samples"]:
@@ -392,7 +392,7 @@ def phase_genotypes(
         Dictionary with phased haplotypes.
 
     Example:
-        >>> haplotypes = bc.phase_genotypes(variants)
+        >>> haplotypes = sc.phase_genotypes(variants)
 
     """
     # Simplified phasing - just separate alleles
@@ -441,7 +441,7 @@ def haplotype_frequency(
         Dictionary mapping haplotypes to frequencies.
 
     Example:
-        >>> freq = bc.haplotype_frequency(haplotypes)
+        >>> freq = sc.haplotype_frequency(haplotypes)
 
     """
     from collections import Counter

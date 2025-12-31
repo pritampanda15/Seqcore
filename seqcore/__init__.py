@@ -4,9 +4,9 @@ A unified, GPU-accelerated library for genomics, proteomics,
 structural biology, and drug design.
 
 Example:
-    >>> import seqcore as bc
-    >>> dna = bc.DNAArray("ACGTACGT")
-    >>> gc = bc.gc_content(dna)
+    >>> import seqcore as sc
+    >>> dna = sc.DNAArray("ACGTACGT")
+    >>> gc = sc.gc_content(dna)
 
 """
 

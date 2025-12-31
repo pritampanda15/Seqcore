@@ -6,7 +6,7 @@ Author: Dr. Pritam Kumar Panda @ Stanford University
 Run these examples to see seqcore in action with real biological data.
 """
 
-import seqcore as bc
+import seqcore as sc
 import numpy as np
 
 
@@ -17,22 +17,22 @@ def example_1_sequence_analysis():
     print("=" * 60)
 
     # Load sequences
-    sequences = bc.read("tests/data/test_sequences.fasta")
+    sequences = sc.read("tests/data/test_sequences.fasta")
     print(f"Loaded {len(sequences)} sequences")
 
     # Calculate GC content
-    gc = bc.gc_content(sequences)
+    gc = sc.gc_content(sequences)
     for seq_id, gc_val in zip(sequences.ids, gc):
         print(f"  {seq_id}: GC content = {gc_val:.1f}%")
 
     # Translate to protein
-    proteins = bc.translate(sequences)
+    proteins = sc.translate(sequences)
     print(f"\nTranslated {len(proteins)} proteins")
     for i, prot in enumerate(proteins.sequences[:2]):
         print(f"  {sequences.ids[i]}: {prot[:30]}...")
 
     # Find ATG start codons
-    matches = bc.find_pattern(sequences, "ATG")
+    matches = sc.find_pattern(sequences, "ATG")
     print(f"\nATG start codon positions:")
     for seq_id, positions in zip(sequences.ids, matches):
         print(f"  {seq_id}: {len(positions)} occurrences")
@@ -47,17 +47,17 @@ def example_2_protein_structure():
     print("=" * 60)
 
     # Load structure
-    structure = bc.read("tests/data/test_protein.pdb")
+    structure = sc.read("tests/data/test_protein.pdb")
     print(f"Loaded structure with {len(structure.atoms)} atoms")
     print(f"Chains: {set(structure.chains)}")
 
     # Calculate distance matrix for CA atoms
-    dm = bc.distance_matrix(structure, selection="CA")
+    dm = sc.distance_matrix(structure, selection="CA")
     print(f"CA distance matrix shape: {dm.shape}")
     print(f"Min/Max CA distances: {dm[dm > 0].min():.2f} / {dm.max():.2f} Å")
 
     # Find contacts
-    contacts = bc.find_contacts(structure, cutoff=4.0)
+    contacts = sc.find_contacts(structure, cutoff=4.0)
     print(f"Found {len(contacts)} contacts within 4.0 Å")
 
     # Select chain A
@@ -74,23 +74,23 @@ def example_3_variant_analysis():
     print("=" * 60)
 
     # Load variants
-    variants = bc.read("tests/data/test_variants.vcf")
+    variants = sc.read("tests/data/test_variants.vcf")
     print(f"Loaded {len(variants['pos'])} variants")
     print(f"Samples: {variants['sample_names']}")
 
     # Calculate allele frequencies
-    af = bc.allele_frequency(variants)
+    af = sc.allele_frequency(variants)
     print(f"\nAllele frequencies:")
     for i in range(min(5, len(af))):
         print(f"  {variants['chrom'][i]}:{variants['pos'][i]} "
               f"{variants['ref'][i]}>{variants['alt'][i]}: AF={af[i]:.3f}")
 
     # Calculate heterozygosity
-    het = bc.heterozygosity(variants)
+    het = sc.heterozygosity(variants)
     print(f"\nHeterozygosity range: {min(het):.3f} - {max(het):.3f}")
 
     # Linkage disequilibrium matrix
-    ld = bc.linkage_disequilibrium(variants)
+    ld = sc.linkage_disequilibrium(variants)
     print(f"LD matrix shape: {ld.shape}")
 
     return variants
@@ -103,18 +103,18 @@ def example_4_molecule_analysis():
     print("=" * 60)
 
     # Load molecules
-    molecules = bc.read("tests/data/test_molecules.sdf")
+    molecules = sc.read("tests/data/test_molecules.sdf")
     print(f"Loaded {len(molecules)} molecules")
 
     for mol in molecules:
         print(f"  {mol.name}: {len(mol.atoms)} atoms, {len(mol.bonds)} bonds")
 
     # Generate fingerprints
-    fps = bc.morgan_fingerprint(molecules)
+    fps = sc.morgan_fingerprint(molecules)
     print(f"\nFingerprint matrix shape: {fps.shape}")
 
     # Calculate similarity matrix
-    sim = bc.tanimoto_similarity(fps)
+    sim = sc.tanimoto_similarity(fps)
     print("Tanimoto similarity matrix:")
     for i, mol1 in enumerate(molecules):
         for j, mol2 in enumerate(molecules):
@@ -131,19 +131,19 @@ def example_5_phylogenetics():
     print("=" * 60)
 
     # Load sequences
-    sequences = bc.read("tests/data/test_sequences.fasta")
+    sequences = sc.read("tests/data/test_sequences.fasta")
 
     # Calculate pairwise distances
-    dm = bc.pairwise_distance(sequences, metric="edit")
+    dm = sc.pairwise_distance(sequences, metric="edit")
     print(f"Distance matrix shape: {dm.shape}")
 
     # Build Neighbor-Joining tree
-    tree = bc.neighbor_joining(sequences)
+    tree = sc.neighbor_joining(sequences)
     print(f"NJ tree leaves: {tree.get_leaves()}")
     print(f"Newick: {tree.newick()[:80]}...")
 
     # Build UPGMA tree
-    upgma_tree = bc.upgma(sequences)
+    upgma_tree = sc.upgma(sequences)
     print(f"UPGMA tree leaves: {upgma_tree.get_leaves()}")
 
     return tree
@@ -156,7 +156,7 @@ def example_6_sequencing_qc():
     print("=" * 60)
 
     # Load FASTQ reads
-    reads = bc.read("tests/data/test_reads.fastq")
+    reads = sc.read("tests/data/test_reads.fastq")
     print(f"Loaded {len(reads)} reads")
 
     # Quality statistics
@@ -164,7 +164,7 @@ def example_6_sequencing_qc():
     print(f"Mean quality scores: {[f'{q:.1f}' for q in mean_quals]}")
 
     # Quality filtering
-    passed = bc.quality_filter(reads, min_q=20, max_n=0.1)
+    passed = sc.quality_filter(reads, min_q=20, max_n=0.1)
     print(f"Reads passing QC (Q>=20, N<10%): {sum(passed)}/{len(passed)}")
 
     return reads
@@ -181,8 +181,8 @@ def example_7_streaming_large_files():
     total_gc = 0
 
     print("Processing file in batches...")
-    for batch in bc.read_stream("tests/data/test_sequences.fasta", batch_size=2):
-        batch_gc = np.mean(bc.gc_content(batch))
+    for batch in sc.read_stream("tests/data/test_sequences.fasta", batch_size=2):
+        batch_gc = np.mean(sc.gc_content(batch))
         total_seqs += len(batch)
         total_gc += batch_gc * len(batch)
         print(f"  Batch: {len(batch)} sequences, mean GC: {batch_gc:.1f}%")
@@ -197,19 +197,19 @@ def example_8_alignment_formats():
     print("=" * 60)
 
     # Stockholm format (common for protein families)
-    sto = bc.read("tests/data/test_alignment.sto")
+    sto = sc.read("tests/data/test_alignment.sto")
     print(f"Stockholm: {len(sto)} alignment(s)")
     if isinstance(sto, list):
         for aln in sto:
             print(f"  Sequences: {len(aln.get('sequences', {}))}")
 
     # SAM format (read alignments)
-    sam = bc.read("tests/data/test_alignment.sam")
+    sam = sc.read("tests/data/test_alignment.sam")
     print(f"SAM: {len(sam['reads'])} aligned reads")
     print(f"  References: {list(sam['references'].keys())}")
 
     # Newick trees
-    trees = bc.read("tests/data/test_tree.nwk")
+    trees = sc.read("tests/data/test_tree.nwk")
     print(f"Newick: {len(trees)} tree(s)")
 
 
@@ -220,19 +220,19 @@ def example_9_annotation_formats():
     print("=" * 60)
 
     # GFF3 annotations
-    gff = bc.read("tests/data/test_annotation.gff3")
+    gff = sc.read("tests/data/test_annotation.gff3")
     print(f"GFF3: {len(gff['seqid'])} features")
     feature_types = set(gff["type"])
     print(f"  Feature types: {feature_types}")
 
     # BED regions
-    bed = bc.read("tests/data/test_regions.bed")
+    bed = sc.read("tests/data/test_regions.bed")
     print(f"BED: {len(bed['chrom'])} regions")
     for i in range(min(3, len(bed["chrom"]))):
         print(f"  {bed['chrom'][i]}:{bed['start'][i]}-{bed['end'][i]} ({bed['name'][i]})")
 
     # GenBank
-    gb = bc.read("tests/data/test_sequence.gb")
+    gb = sc.read("tests/data/test_sequence.gb")
     print(f"GenBank: {len(gb)} records")
     for rec in gb:
         print(f"  {rec['locus']}: {len(rec['sequence'])} bp")
@@ -246,16 +246,16 @@ def example_10_population_genetics():
 
     # Nucleotide diversity
     seqs = ["ACGTACGT", "ACGTACGT", "ACGTATGT", "ACGTACGT"]
-    pi = bc.nucleotide_diversity(seqs)
+    pi = sc.nucleotide_diversity(seqs)
     print(f"Nucleotide diversity (π): {pi:.4f}")
 
     # Tajima's D
-    d = bc.tajimas_d(seqs)
+    d = sc.tajimas_d(seqs)
     print(f"Tajima's D: {d:.4f}")
 
     # Using VCF data
-    variants = bc.read("tests/data/test_variants.vcf")
-    af = bc.allele_frequency(variants)
+    variants = sc.read("tests/data/test_variants.vcf")
+    af = sc.allele_frequency(variants)
     print(f"\nVariant allele frequencies: {[f'{f:.3f}' for f in af[:5]]}")
 
 

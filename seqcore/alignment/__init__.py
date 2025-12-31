@@ -269,7 +269,7 @@ def align(
         AlignmentResult or list of results.
 
     Example:
-        >>> result = bc.align(query, reference)
+        >>> result = sc.align(query, reference)
         >>> print(result.score, result.identity)
 
     """
@@ -319,7 +319,7 @@ def pairwise_distance(
         Square distance matrix.
 
     Example:
-        >>> dm = bc.pairwise_distance(sequences, metric="edit")
+        >>> dm = sc.pairwise_distance(sequences, metric="edit")
 
     """
     from seqcore.core.arrays import BioArray
@@ -388,7 +388,7 @@ def find_pattern(
         List of match lists for each sequence.
 
     Example:
-        >>> matches = bc.find_pattern(sequences, "ATG[ACGT]{30,1000}T(AA|AG|GA)")
+        >>> matches = sc.find_pattern(sequences, "ATG[ACGT]{30,1000}T(AA|AG|GA)")
 
     """
     from seqcore.core.arrays import BioArray
@@ -437,7 +437,7 @@ def find_motifs(
         List of motif dictionaries with sequence and count.
 
     Example:
-        >>> motifs = bc.find_motifs(sequences, min_length=6, max_length=12)
+        >>> motifs = sc.find_motifs(sequences, min_length=6, max_length=12)
 
     """
     from collections import Counter
@@ -485,7 +485,7 @@ def position_weight_matrix(
         Position weight matrix (4 x length for DNA, 20 x length for protein).
 
     Example:
-        >>> pwm = bc.position_weight_matrix(aligned_sequences)
+        >>> pwm = sc.position_weight_matrix(aligned_sequences)
 
     """
     from seqcore.core.arrays import BioArray, DNAArray, RNAArray

@@ -49,7 +49,7 @@ def distance_matrix(structure: StructureArray, selection: str = "CA") -> np.ndar
         Square distance matrix.
 
     Example:
-        >>> dm = bc.distance_matrix(structure)
+        >>> dm = sc.distance_matrix(structure)
 
     """
     if selection == "CA":
@@ -86,7 +86,7 @@ def find_contacts(
         List of Contact objects.
 
     Example:
-        >>> contacts = bc.find_contacts(structure, cutoff=4.0)
+        >>> contacts = sc.find_contacts(structure, cutoff=4.0)
 
     """
     coords = structure.coordinates
@@ -144,7 +144,7 @@ def find_neighbors(
         StructureArray with neighboring atoms.
 
     Example:
-        >>> neighbors = bc.find_neighbors(structure, residue=265, radius=5.0)
+        >>> neighbors = sc.find_neighbors(structure, residue=265, radius=5.0)
 
     """
     # Find center of target residue
@@ -194,7 +194,7 @@ def rmsd(
         RMSD value in Angstroms.
 
     Example:
-        >>> rmsd_value = bc.rmsd(wt_structure, mutant_structure, align=True)
+        >>> rmsd_value = sc.rmsd(wt_structure, mutant_structure, align=True)
 
     """
     if selection == "CA":
@@ -258,7 +258,7 @@ def secondary_structure(structure: StructureArray) -> dict[int, str]:
         Dictionary mapping residue numbers to SS codes (H=helix, E=sheet, C=coil).
 
     Example:
-        >>> ss = bc.secondary_structure(structure)
+        >>> ss = sc.secondary_structure(structure)
 
     """
     # Get CA atoms
@@ -307,7 +307,7 @@ def sasa(
         Array of SASA values per atom.
 
     Example:
-        >>> sasa_values = bc.sasa(structure)
+        >>> sasa_values = sc.sasa(structure)
 
     """
     # Simplified SASA calculation using sphere sampling
@@ -375,7 +375,7 @@ def surface_residues(
         List of surface residue numbers.
 
     Example:
-        >>> surface = bc.surface_residues(structure, threshold=25.0)
+        >>> surface = sc.surface_residues(structure, threshold=25.0)
 
     """
     sasa_values = sasa(structure)
@@ -399,7 +399,7 @@ def normalize_bfactors(structure: StructureArray) -> StructureArray:
         New structure with normalized B-factors.
 
     Example:
-        >>> normalized = bc.normalize_bfactors(structure)
+        >>> normalized = sc.normalize_bfactors(structure)
 
     """
     b = structure._b_factors.copy()
@@ -429,7 +429,7 @@ def flexibility_profile(structure: StructureArray) -> dict[int, float]:
         Dictionary mapping residue numbers to flexibility scores.
 
     Example:
-        >>> flex = bc.flexibility_profile(structure)
+        >>> flex = sc.flexibility_profile(structure)
 
     """
     # Average B-factor per residue
@@ -466,7 +466,7 @@ def find_pockets(
         List of Pocket objects.
 
     Example:
-        >>> pockets = bc.find_pockets(structure)
+        >>> pockets = sc.find_pockets(structure)
 
     """
     coords = structure.coordinates
@@ -509,7 +509,7 @@ def druggability_score(pockets: list[Pocket]) -> list[float]:
         List of druggability scores (0-1).
 
     Example:
-        >>> scores = bc.druggability_score(pockets)
+        >>> scores = sc.druggability_score(pockets)
 
     """
     return [p.druggability for p in pockets]
@@ -533,7 +533,7 @@ def compare_contacts(
         Dictionary with contact comparison results.
 
     Example:
-        >>> diff = bc.compare_contacts(wt, mutant, ligand="propofol")
+        >>> diff = sc.compare_contacts(wt, mutant, ligand="propofol")
 
     """
     contacts1 = find_contacts(structure1, cutoff=cutoff)

@@ -41,7 +41,7 @@ class Molecule:
             Molecule instance.
 
         Example:
-            >>> mol = bc.Molecule.from_smiles("CCO")  # Ethanol
+            >>> mol = sc.Molecule.from_smiles("CCO")  # Ethanol
 
         """
         return cls(smiles=smiles, name=name)
@@ -196,7 +196,7 @@ def molecular_weight(molecules: Molecule | list[Molecule]) -> np.ndarray:
         Array of molecular weights.
 
     Example:
-        >>> mw = bc.molecular_weight(molecules)
+        >>> mw = sc.molecular_weight(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -249,7 +249,7 @@ def logp(molecules: Molecule | list[Molecule]) -> np.ndarray:
         Array of LogP values.
 
     Example:
-        >>> logp_values = bc.logp(molecules)
+        >>> logp_values = sc.logp(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -282,7 +282,7 @@ def h_bond_donors(molecules: Molecule | list[Molecule]) -> np.ndarray:
         Array of HBD counts.
 
     Example:
-        >>> hbd = bc.h_bond_donors(molecules)
+        >>> hbd = sc.h_bond_donors(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -314,7 +314,7 @@ def h_bond_acceptors(molecules: Molecule | list[Molecule]) -> np.ndarray:
         Array of HBA counts.
 
     Example:
-        >>> hba = bc.h_bond_acceptors(molecules)
+        >>> hba = sc.h_bond_acceptors(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -346,7 +346,7 @@ def tpsa(molecules: Molecule | list[Molecule]) -> np.ndarray:
         Array of TPSA values.
 
     Example:
-        >>> tpsa_values = bc.tpsa(molecules)
+        >>> tpsa_values = sc.tpsa(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -378,7 +378,7 @@ def rotatable_bonds(molecules: Molecule | list[Molecule]) -> np.ndarray:
         Array of rotatable bond counts.
 
     Example:
-        >>> rot = bc.rotatable_bonds(molecules)
+        >>> rot = sc.rotatable_bonds(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -410,7 +410,7 @@ def lipinski_filter(molecules: Molecule | list[Molecule]) -> np.ndarray:
         Boolean array (True = passes filter).
 
     Example:
-        >>> passes = bc.lipinski_filter(molecules)
+        >>> passes = sc.lipinski_filter(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -436,7 +436,7 @@ def veber_filter(molecules: Molecule | list[Molecule]) -> np.ndarray:
         Boolean array (True = passes filter).
 
     Example:
-        >>> passes = bc.veber_filter(molecules)
+        >>> passes = sc.veber_filter(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -460,7 +460,7 @@ def bbb_filter(molecules: Molecule | list[Molecule]) -> np.ndarray:
         Boolean array (True = likely BBB permeable).
 
     Example:
-        >>> passes = bc.bbb_filter(molecules)
+        >>> passes = sc.bbb_filter(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -492,7 +492,7 @@ def morgan_fingerprint(
         Array of fingerprints (n_molecules x n_bits).
 
     Example:
-        >>> fps = bc.morgan_fingerprint(molecules, radius=2)
+        >>> fps = sc.morgan_fingerprint(molecules, radius=2)
 
     """
     mols = _get_mol_list(molecules)
@@ -530,7 +530,7 @@ def rdkit_fingerprint(
         Array of fingerprints.
 
     Example:
-        >>> fps = bc.rdkit_fingerprint(molecules)
+        >>> fps = sc.rdkit_fingerprint(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -565,7 +565,7 @@ def maccs_fingerprint(molecules: Molecule | list[Molecule]) -> np.ndarray:
         Array of 166-bit MACCS fingerprints.
 
     Example:
-        >>> fps = bc.maccs_fingerprint(molecules)
+        >>> fps = sc.maccs_fingerprint(molecules)
 
     """
     mols = _get_mol_list(molecules)
@@ -604,7 +604,7 @@ def tanimoto_similarity(
         Similarity matrix.
 
     Example:
-        >>> sim = bc.tanimoto_similarity(fps1, fps2)
+        >>> sim = sc.tanimoto_similarity(fps1, fps2)
 
     """
     if fingerprints2 is None:
@@ -657,7 +657,7 @@ def find_similar(
         List of similar molecules with scores.
 
     Example:
-        >>> similar = bc.find_similar(query, library, threshold=0.7)
+        >>> similar = sc.find_similar(query, library, threshold=0.7)
 
     """
     if fingerprint_type == "morgan":
@@ -701,7 +701,7 @@ def substructure_search(
         Boolean array of matches.
 
     Example:
-        >>> matches = bc.substructure_search(molecules, "c1ccccc1")
+        >>> matches = sc.substructure_search(molecules, "c1ccccc1")
 
     """
     mols = _get_mol_list(molecules)
@@ -743,7 +743,7 @@ def generate_conformers(
         List of coordinate arrays.
 
     Example:
-        >>> conformers = bc.generate_conformers(mol, n_conformers=100)
+        >>> conformers = sc.generate_conformers(mol, n_conformers=100)
 
     """
     has_rdkit, Chem, _, _, AllChem = _try_rdkit("conformers", molecule)
@@ -781,7 +781,7 @@ def minimize_energy(
         List of minimized coordinate arrays.
 
     Example:
-        >>> minimized = bc.minimize_energy(conformers)
+        >>> minimized = sc.minimize_energy(conformers)
 
     """
     # Placeholder - actual implementation would use force field
@@ -804,7 +804,7 @@ def find_interactions(
         Dictionary of interaction types and details.
 
     Example:
-        >>> interactions = bc.find_interactions(protein, ligand)
+        >>> interactions = sc.find_interactions(protein, ligand)
 
     """
     from seqcore.core.structure import StructureArray
