@@ -48,7 +48,7 @@ gpu = [
 ]
 full = [
     "biopython>=1.79",
-    "pandas>=1.5.0,<2.2.0",  # Compatible with numpy<2.0
+    "pandas>=1.5.0,<2.4.0",  # Compatible with numpy<2.0
     "h5py>=3.0.0",
 ]
 structure = [
@@ -68,7 +68,7 @@ dev = [
     "bandit>=1.7.0",
     "pip-audit>=2.6.0",
     "biopython>=1.79",
-    "pandas>=1.5.0,<2.2.0",
+    "pandas>=1.5.0,<2.4.0",
 ]
 docs = [
     "sphinx>=6.0.0",
