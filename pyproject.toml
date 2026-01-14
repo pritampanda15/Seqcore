@@ -39,7 +39,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Chemistry",
 ]
 dependencies = [
-    "numpy>=1.22.0,<2.0.0",  # NumPy 1.x for compatibility with pandas wheels
+    "numpy>=1.22.0,<3.0.0",  # NumPy 1.x for compatibility with pandas wheels
 ]
 
 [project.optional-dependencies]
