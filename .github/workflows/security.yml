@@ -24,7 +24,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          # pip-audit inspects the whole environment, so the build toolchain is
+          # audited alongside Seqcore's own dependencies. Upgrade it first:
+          # runner images ship pinned versions that routinely lag behind known
+          # advisories, and the fix for those is to update, not to suppress.
+          python -m pip install --upgrade pip setuptools wheel
           pip install bandit pip-audit
           pip install -e .
 
@@ -32,6 +36,9 @@ jobs:
         run: bandit -r seqcore/ -ll -ii -x tests/
 
       - name: Check dependencies with pip-audit
+        # Deliberately not suppressed with `|| true`: a findable vulnerability
+        # should fail the build. If an advisory has no fix available yet, add an
+        # explicit `--ignore-vuln <ID>` with a comment rather than muting the step.
         run: pip-audit --desc on
 
   codeql:
