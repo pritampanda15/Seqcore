@@ -547,7 +547,13 @@ def figure_kmers_and_summary(primary: dict, suites: dict, primary_label: str) ->
     panel_label(ax1, "a")
 
     # --- b: same comparison on every machine measured ---------------------
-    labels = [primary_label] + [k for k in suites if k != primary_label]
+    primary_version = (primary.get("library_versions", {}) or {}).get("seqcore")
+    labels = [primary_label] + [
+        k
+        for k in suites
+        if k != primary_label
+        and (suites[k].get("library_versions", {}) or {}).get("seqcore") == primary_version
+    ]
     per_machine = {lab: summary_rows(suites[lab]) for lab in labels}
     ordered = sorted(per_machine[primary_label], key=lambda r: r["speedup_vs_best"])
     op_order = [r["short"] for r in ordered]
@@ -699,6 +705,122 @@ def figure_gpu() -> bool:
     )
 
     save(fig, "fig5_gpu")
+    return True
+
+
+# ============================================== Figure 6: domain modules
+def figure_modules() -> bool:
+    """Domain-module performance, if a modules_*.json result is present."""
+    files = sorted(glob.glob(str(ROOT / "benchmarks" / "results" / "modules_*.json")))
+    if not files:
+        print("  (no domain-module results; skipping)")
+        return False
+    d = json.loads(Path(files[-1]).read_text())
+
+    rows = [r for r in d["results"] if r.get("seqcore")]
+    by = {}
+    for r in rows:
+        by.setdefault((r["module"], r["operation"]), []).append(r)
+    for v in by.values():
+        v.sort(key=lambda r: r["size"])
+
+    # --- panel a: Seqcore against the best available reference -------------
+    wanted = [
+        ("molecules", "molecular_weight", "Mol. weight", "RDKit"),
+        ("molecules", "morgan_fingerprint", "Morgan FP", "RDKit"),
+        ("molecules", "tanimoto_similarity", "Tanimoto", "RDKit"),
+        ("structure", "distance_matrix", "Distance matrix", "SciPy"),
+        ("structure", "find_contacts", "Contacts", "SciPy"),
+        (
+            "phylogenetics",
+            "neighbor_joining (hamming, like-for-like)",
+            "Neighbour-joining",
+            "Biopython",
+        ),
+        ("phylogenetics", "upgma (hamming, like-for-like)", "UPGMA", "Biopython"),
+        ("population", "allele_frequency", "Allele frequency", "NumPy"),
+    ]
+    labels, values, refs = [], [], []
+    for mod, op, label, ref in wanted:
+        series = by.get((mod, op))
+        if not series or not series[-1].get("speedup"):
+            continue
+        labels.append(label)
+        values.append(series[-1]["speedup"])
+        refs.append(ref)
+
+    order = np.argsort(values)
+    labels = [labels[i] for i in order]
+    values = [values[i] for i in order]
+    refs = [refs[i] for i in order]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(COL2, 2.4))
+    fig.subplots_adjust(left=0.155, right=0.985, bottom=0.20, top=0.90, wspace=0.46)
+
+    y = np.arange(len(labels))
+    colours = [NPG_BLUE if v >= 1 else NPG_RED for v in values]
+    ax1.barh(y, values, 0.62, color=colours, linewidth=0)
+    ax1.axvline(1.0, color=CHARCOAL, lw=0.7, ls=(0, (2, 2)))
+    ax1.set_xscale("log")
+    ax1.set_xlim(0.02, max(values) * 12)
+    label_x = ax1.get_xlim()[1] * 0.9
+    for yi, (v, ref) in enumerate(zip(values, refs)):
+        ax1.text(
+            label_x,
+            yi,
+            f"{v:.2f}× ({ref})" if v < 1 else f"{v:.1f}× ({ref})",
+            va="center",
+            ha="right",
+            fontsize=5.2,
+            color=CHARCOAL,
+        )
+    ax1.set_yticks(y)
+    ax1.set_yticklabels(labels, fontsize=5.8)
+    ax1.set_xlabel("Seqcore relative to reference library")
+    clean(ax1, grid_axis="x")
+    panel_label(ax1, "a", dx=-0.52)
+
+    # --- panel b: the distance metric dominates tree building --------------
+    series = {
+        "Biopython": ("reference", NPG_RED, "s"),
+        'metric="identity"': ("phylogenetics", NPG_TEAL, "^"),
+        'metric="hamming"': ("phylogenetics", NPG_BLUE, "o"),
+    }
+    ident = by.get(("phylogenetics", "neighbor_joining (identity, realigns)"), [])
+    hamm = by.get(("phylogenetics", "neighbor_joining (hamming, like-for-like)"), [])
+    if ident and hamm:
+        sizes = np.array([r["size"] for r in ident], dtype=float)
+        ax2.loglog(
+            sizes,
+            arr([r["reference"] for r in ident]),
+            marker="s",
+            color=NPG_RED,
+            label="Biopython",
+            markeredgecolor=NPG_RED,
+        )
+        ax2.loglog(
+            sizes,
+            arr([r["seqcore"] for r in ident]),
+            marker="^",
+            color=NPG_TEAL,
+            label='Seqcore, metric="identity"',
+            markeredgecolor=NPG_TEAL,
+        )
+        ax2.loglog(
+            np.array([r["size"] for r in hamm], dtype=float),
+            arr([r["seqcore"] for r in hamm]),
+            marker="o",
+            color=NPG_BLUE,
+            label='Seqcore, metric="hamming"',
+            markeredgecolor=NPG_BLUE,
+        )
+    ax2.set_xlabel("Taxa")
+    ax2.set_ylabel("Wall-clock time (s)")
+    clean(ax2)
+    ax2.legend(loc="upper left", fontsize=5.4)
+    panel_label(ax2, "b")
+
+    save(fig, "fig6_modules")
     return True
 
 
@@ -915,9 +1037,42 @@ def write_numbers(rows: list[dict], d: dict, suites: dict, primary_label: str) -
         "KmerCross": str(cross),
     }
 
+    # The Seqcore version the manuscript describes. Taken from the installed
+    # package, and cross-checked against the version each benchmark recorded so
+    # that results produced by different code cannot be reported as one release.
+    try:
+        from importlib.metadata import version as _pkg_version
+
+        current = _pkg_version("seqcore")
+    except Exception:
+        current = None
+
+    measured = {
+        lab: (v.get("library_versions", {}) or {}).get("seqcore") for lab, v in suites.items()
+    }
+    primary_version = measured.get(primary_label)
+    stale = {
+        lab: ver for lab, ver in measured.items() if lab != primary_label and ver != primary_version
+    }
+    for lab, ver in stale.items():
+        print(
+            f"  WARNING: {lab} was measured with Seqcore {ver}, but the primary "
+            f"machine used {primary_version}. It is excluded from the "
+            "cross-platform comparison; re-run benchmark_suite.py there to "
+            "include it."
+        )
+    if current and primary_version and current != primary_version:
+        print(
+            f"  WARNING: package is {current} but the primary benchmark used "
+            f"{primary_version}. Re-run the suite before submitting."
+        )
+    defs["SeqcoreVersion"] = current or primary_version or "?"
+
     # Cross-platform macros: the secondary machine, and the range of speedups
     # observed for the same operation across machines.
-    others = [lab for lab in suites if lab != primary_label]
+    others = [
+        lab for lab in suites if lab != primary_label and measured.get(lab) == primary_version
+    ]
     if others:
         other_label = others[0]
         other = suites[other_label]
@@ -950,38 +1105,18 @@ def write_numbers(rows: list[dict], d: dict, suites: dict, primary_label: str) -
         ratios.append(other["align"]["seqcore"][-1] / align["seqcore"][-1])
         defs["PrimaryFasterLo"] = texnum(min(ratios), 1)
         defs["PrimaryFasterHi"] = texnum(max(ratios), 1)
-        defs["NumMachines"] = str(len(suites))
+        defs["NumMachines"] = str(1 + len(others))
 
-    # The Seqcore version the manuscript describes. Taken from the installed
-    # package, and cross-checked against the version each benchmark recorded so
-    # that results produced by different code cannot be reported as one release.
-    try:
-        from importlib.metadata import version as _pkg_version
-
-        current = _pkg_version("seqcore")
-    except Exception:
-        current = None
-
-    measured = {
-        lab: (v.get("library_versions", {}) or {}).get("seqcore") for lab, v in suites.items()
-    }
-    distinct = {v for v in measured.values() if v}
-    if len(distinct) > 1:
-        raise SystemExit(
-            "Benchmark results were produced by different Seqcore versions "
-            f"({sorted(distinct)}). Re-run benchmark_suite.py on every machine "
-            "with the same version before generating the manuscript."
-        )
-    if current and distinct and current not in distinct:
-        print(
-            f"  WARNING: package is {current} but benchmarks were run with "
-            f"{sorted(distinct)[0]}. Re-run the suite before submitting."
-        )
-    defs["SeqcoreVersion"] = current or (sorted(distinct)[0] if distinct else "?")
     defs["PrimaryMachine"] = textesc(primary_label)
     defs["PrimaryCores"] = str(d.get("cpu_count", "?"))
 
-    lines = ["% Generated by paper/make_figures.py -- do not edit by hand."]
+    lines = [
+        "% Generated by paper/make_figures.py -- do not edit by hand.",
+        # Lets the manuscript drop the cross-platform material when only one
+        # machine has results for the version being described.
+        r"\newif\ifMultiMachine",
+        r"\MultiMachine" + ("true" if others else "false"),
+    ]
     lines += [r"\newcommand{\%s}{%s}" % (name, value) for name, value in defs.items()]
     (HERE / "numbers.tex").write_text("\n".join(lines) + "\n")
     print("  numbers.tex")
@@ -1001,6 +1136,7 @@ if __name__ == "__main__":
     figure_alignment(primary)
     figure_kmers_and_summary(primary, suites, primary_label)
     figure_gpu()
+    figure_modules()
     write_table(rows)
     write_numbers(rows, primary, suites, primary_label)
     print(f"Done -> {FIGDIR}")

@@ -81,13 +81,20 @@ $\GCvsBio\times$ Biopython) and translates in $\TransMs$\,ms
 ($\TransThroughput$\,Mbase\,s$^{-1}$; $\TransVsBio\times$ Biopython). We also
 report the regimes where Seqcore is \emph{not} the right tool: reverse
 complement sits at $\RCvsBio\times$ Biopython, and pairwise alignment is
-$\AlignSlower\times$ slower than Biopython's compiled aligner. Results are
+$\AlignSlower\times$ slower than Biopython's compiled aligner. \ifMultiMachine Results are
 reported on \NumMachines{} machines --- a desktop Apple silicon Mac and a cloud
 Linux instance --- which agree on every conclusion while differing by up to
-$\PrimaryFasterHi\times$ in absolute time. We additionally measure what a GPU
+$\PrimaryFasterHi\times$ in absolute time. \fi We additionally measure what a GPU
 backend would be worth, and find that per-call host transfer, not arithmetic,
 would govern the outcome. Every vectorized routine is pinned to a naive scalar
 reference by randomized differential tests.
+
+\noindent
+\textbf{Scope.} Beyond sequence operations we apply the same analysis to
+Seqcore's molecule, structure and phylogenetics modules, where the limiting
+costs turn out to be repeated parsing and missing spatial indices rather than
+data layout, and where the appropriate target for a wrapper around an
+established library is parity rather than advantage.
 
 \noindent
 \textbf{Availability.} Seqcore is available under the MIT licence at
@@ -295,14 +302,21 @@ $O(mn)$ to $O(m+n)$ without altering the recurrence.}
 
 \subsection{Benchmarking procedure}
 
-Measurements were taken on two machines: \BenchHost{} running
-\BenchPlatform, and \OtherMachine{} with \OtherCores{} vCPUs. Both run CPython
-\BenchPython, NumPy \BenchNumpy{} and Biopython \BenchBiopython{} so that
-hardware is the only difference between them; unless stated otherwise, reported
-numbers are from the \PrimaryMachine, and Section~\ref{sec:res:platform}
-compares the two. We include a desktop-class Apple silicon machine because it is
-increasingly the hardware on which this kind of analysis is actually run. Each
-configuration runs in a
+\ifMultiMachine
+Measurements were taken on two machines: \BenchHost{} running \BenchPlatform,
+and \OtherMachine{} with \OtherCores{} vCPUs. Both run CPython \BenchPython,
+NumPy \BenchNumpy{} and Biopython \BenchBiopython{} so that hardware is the only
+difference between them; unless stated otherwise, reported numbers are from the
+\PrimaryMachine, and Section~\ref{sec:res:platform} compares the two. We include
+a desktop-class Apple silicon machine because it is increasingly the hardware on
+which this kind of analysis is actually run.
+\else
+Measurements were taken on \BenchHost{} running \BenchPlatform, with CPython
+\BenchPython, NumPy \BenchNumpy{} and Biopython \BenchBiopython. We report a
+desktop-class Apple silicon machine because it is increasingly the hardware on
+which this kind of analysis is actually run.
+\fi
+Each configuration runs in a
 freshly spawned subprocess, so import order, allocator state and warmed caches
 cannot leak between implementations, and each reported time is the best of five
 repetitions (three for alignment and $k$-mer counting) --- the appropriate
@@ -402,12 +416,14 @@ path wins while $k$-mers collapse; the dashed line marks the $4^k > N$ dispatch
 rule, beyond which Seqcore falls back to a string counter rather than
 regressing. Biopython provides no batch $k$-mer counter and is omitted.
 \textbf{b}, Seqcore's speedup relative to the faster of Biopython and pure Python
-for each operation, on both machines, at the configurations in
-Table~\ref{tab:summary}. Bars left of the dashed line are operations where
-Seqcore is slower. The ordering of operations is the same on both machines.}
+for each operation\ifMultiMachine{} on each machine measured\fi, at the
+configurations in Table~\ref{tab:summary}. Bars left of the dashed line are
+operations where Seqcore is slower.\ifMultiMachine{} The ordering of operations
+is the same on both machines.\fi}
 \label{fig:kmers}
 \end{figure}
 
+\ifMultiMachine
 \subsection{Behaviour across machines}
 \label{sec:res:platform}
 
@@ -427,6 +443,63 @@ Python is \emph{larger} on the server, whose interpreter is comparatively slower
 than its NumPy. The lesson is that a single-machine speedup figure should be
 read as one point estimate, not a property of the library --- which is why we
 report two machines and commit the harness that produced both.
+\fi
+
+\subsection{Beyond sequence operations}
+\label{sec:res:modules}
+
+Seqcore also provides modules for small molecules, structural biology,
+phylogenetics and population genetics. These do not share the sequence array
+representation, so they are a useful test of how far the paper's argument
+carries. Figure~\ref{fig:modules} compares them against the library a user would
+otherwise reach for.
+
+The bottlenecks there turned out not to be representation at all. Molecular
+property functions re-parsed the SMILES string on every call, so the cost was
+repeated work rather than the wrong data structure; caching the parsed molecule
+removed roughly a factor of forty. Morgan fingerprints spent almost all their
+time converting RDKit bit vectors to arrays one bit at a time in Python. Solvent
+accessible surface area tested every atom against every other for every surface
+point, and re-derived van der Waals radii from element strings inside that
+innermost loop; restricting each atom to the neighbours whose inflated sphere
+can reach it makes the cost roughly linear rather than quadratic, and at 5000
+atoms takes it from tens of minutes to a fraction of a second.
+
+Two results are worth separating from the rest. The molecule functions wrap
+RDKit, and the structural neighbour searches wrap a spatial index; for those the
+honest target is parity, not victory, and Figure~\ref{fig:modules}a shows them
+sitting below $1$. A wrapper that costs a few tens of percent buys API
+consistency at a defensible price; the same wrapper costing seventy times was
+simply a defect.
+
+Figure~\ref{fig:modules}b makes a different point. For tree building, the
+user-facing choice of distance metric spans three orders of magnitude ---
+far more than any implementation detail in this paper. \texttt{identity} aligns
+every pair with Needleman--Wunsch, which is correct for unaligned input and
+costs $O(n^2L^2)$; \texttt{hamming} compares an existing alignment column by
+column. The two are not interchangeable, and disagree once sequences diverge
+enough for the aligner to open gaps, so the slower and more general option
+remains the default. We note it because a benchmark that pairs one library's
+\texttt{identity} against another's without checking that they denote the same
+computation will report a difference that is an artefact of the comparison
+rather than of either implementation.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig6_modules.pdf}
+\caption{\textbf{Domain modules against their reference libraries.}
+\textbf{a}, Seqcore relative to the library a user would otherwise use for the
+same operation, at the largest size measured; the reference is named beside each
+bar. Bars left of the dashed line are operations where the reference is faster.
+The molecule functions wrap RDKit and the structural searches wrap a spatial
+index, so parity rather than advantage is the target there.
+\textbf{b}, Neighbour-joining against Biopython. The choice of distance metric
+dominates: \texttt{identity} aligns every pair before building the tree, while
+\texttt{hamming} compares an already-aligned input column by column. Biopython's
+identity calculator does the latter, so only the lower two curves are a
+like-for-like comparison.}
+\label{fig:modules}
+\end{figure}
 
 \subsection{Where Seqcore is not the right tool}
 \label{sec:limits}
@@ -435,7 +508,8 @@ Two operations do not favour this design, and we state them plainly rather than
 omitting them.
 
 \textbf{Reverse complement} runs at $\RCvsBio\times$ Biopython ($\RCms$\,ms versus
-$\RCbioms$\,ms at $\BatchN$ sequences; $\OtherRCvsBio\times$ on the \OtherCPU). Biopython implements it as \texttt{str.translate}
+$\RCbioms$\,ms at $\BatchN$ sequences\ifMultiMachine; $\OtherRCvsBio\times$ on
+the \OtherCPU\fi). Biopython implements it as \texttt{str.translate}
 followed by a slice: two compiled passes over contiguous bytes, with no padding
 and no gather indirection. Seqcore performs comparable byte-level work on a
 padded matrix, and the operation is memory-bandwidth bound rather than dispatch
@@ -443,13 +517,18 @@ bound, so removing interpreter overhead cannot help. There is no vectorization
 advantage available here, and we do not claim one.
 
 \textbf{Pairwise alignment} is roughly $\AlignSlower\times$ slower than Biopython's
-aligner at $L=\AlignLenHi$ (and $\OtherAlignSlower\times$ slower on the
-\OtherCPU). The wavefront still issues $O(m+n)$ NumPy calls, each materializing
+aligner at $L=\AlignLenHi$\ifMultiMachine{} (and $\OtherAlignSlower\times$
+slower on the \OtherCPU)\fi. The wavefront still issues $O(m+n)$ NumPy calls, each materializing
 temporaries proportional to the diagonal length, whereas Biopython dispatches
 into compiled code with none of that overhead. Vectorized NumPy narrows the gap
 against scalar Python but cannot close it against C; that requires a compiled
 kernel. Users whose workload is alignment-bound should use a dedicated aligner,
 and Seqcore's documentation says so at the call site.
+
+Within the domain modules, \texttt{nucleotide\_diversity} and
+\texttt{tajimas\_d} remain quadratic in the number of sequences, and tree
+construction itself is still an interpreted $O(n^3)$ loop, which becomes the
+limiting cost once the distance matrix is no longer the bottleneck.
 
 Two further limitations are worth recording. Seqcore's \texttt{align()} accepts a
 \texttt{gap\_extend} argument that currently has no effect: gaps are scored
@@ -540,6 +619,13 @@ in themselves --- masked reductions, lookup tables and wavefront dynamic
 programming are all standard --- but they only become available once a batch of
 sequences is a dense numeric array rather than a list of objects. Choosing that
 representation first is what makes the rest follow.
+
+The domain modules in Section~\ref{sec:res:modules} qualify that claim rather
+than confirming it. There the costs were repeated parsing, element-wise
+conversion at a language boundary, and the absence of a spatial index --- none
+of which is a representation problem. What the two halves share is narrower and
+perhaps more useful: in each case the measured time was going somewhere other
+than the arithmetic the user asked for, and the fix was to find where.
 
 Two points generalize beyond this library. The first is that an optimization
 needs a stated domain of applicability. The $k$-mer result is the clearest case:

@@ -5,6 +5,69 @@ All notable changes to Seqcore are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-08-27
+
+Performance work on the domain modules -- molecules, structural biology and
+phylogenetics -- which had never been benchmarked. Every change is pinned to the
+previous implementation by a differential test; no result changes.
+
+### Performance
+
+- **SASA is roughly 15,800x faster at 5,000 atoms** (an extrapolated 43 minutes
+  down to 0.17 s). It was a triple loop over atoms x sphere points x atoms that
+  also re-derived each atom's van der Waals radius from its element string
+  inside the innermost loop. Radii are now resolved once and each atom is tested
+  only against neighbours whose inflated sphere can reach it, making the cost
+  roughly linear rather than quadratic.
+- **`find_contacts` is 161x faster at 5,000 atoms.** Candidate pairs come from a
+  spatial index instead of a Python double loop; pairs, their ordering and their
+  distances are unchanged.
+- **`tanimoto_similarity` is 216x faster** (16.4 s to 0.076 s at 2000x2000). For
+  binary fingerprints the intersection is a dot product, so the whole matrix is
+  one BLAS call.
+- **`morgan_fingerprint` is 26x faster.** It spent 95% of its time in
+  `np.array()` walking RDKit bit vectors one bit at a time;
+  `DataStructs.ConvertToNumpyArray` does the same work inside RDKit.
+- **Molecule property functions are ~46x faster.** Every one of them re-parsed
+  the SMILES with `Chem.MolFromSmiles`; `Molecule` now caches its parsed form.
+  These are RDKit wrappers and are not expected to beat RDKit, but they no
+  longer charge a large multiple for the convenience.
+- **All-pairs Hamming distance is 377x faster**, as a single matrix product over
+  the one-hot encoding.
+
+### Added
+
+- `neighbor_joining()` and `upgma()` accept `metric=`. The default `"identity"`
+  aligns every pair with Needleman-Wunsch, costing O(n^2 L^2), and is unchanged.
+  `"hamming"` compares equal-length sequences column by column and is far
+  faster, but requires input that is already aligned. With `metric="hamming"`,
+  a 48-taxon tree goes from 6.2 s to 0.016 s, and Seqcore is 3-4x faster than
+  Biopython on the like-for-like comparison rather than ~200x slower.
+
+  The two metrics are **not** equivalent: once sequences diverge enough for the
+  aligner to open gaps they disagree by up to 0.24 in our tests, which is why
+  this is opt-in.
+- `benchmarks/benchmark_modules.py`, covering the four domain modules against
+  RDKit, SciPy, Biopython and a NumPy reference.
+- 21 further differential tests (133 -> 154).
+
+### Fixed
+
+- `sc.molecular_weight(molecules)`, shown in the README's drug-design section,
+  raised `TypeError`. The name is exported by both `core.operations` (for
+  sequences) and `molecules`, and the sequence version shadowed the other. Use
+  `seqcore.molecules.molecular_weight` for molecules; this is the only such
+  collision in the public API.
+
+### Known limitations
+
+- `nucleotide_diversity` and `tajimas_d` remain O(n^2) over sequence pairs
+  (0.21 s for 160 sequences).
+- Tree building itself is still an O(n^3) Python loop; with `metric="hamming"`
+  that, rather than the distance matrix, is now the bottleneck.
+- `distance_matrix` is left as-is. It already vectorizes each row, and the
+  faster BLAS formulation introduces ~1e-12 error and a non-zero diagonal.
+
 ## [0.4.0] - 2026-08-26
 
 > **Note:** this release changes performance substantially but not results. The
@@ -141,6 +204,7 @@ what a changelog should measure.
 - Initial release: sequence arrays, vectorized operations, k-mers, alignment and
   core file I/O.
 
+[0.5.0]: https://github.com/pritampanda15/Seqcore/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/pritampanda15/Seqcore/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/pritampanda15/Seqcore/releases/tag/v0.3.0
 [0.2.0]: https://github.com/pritampanda15/Seqcore/releases/tag/v0.2.0

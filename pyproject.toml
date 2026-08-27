@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "seqcore"
-version = "0.4.0"
+version = "0.5.0"
 description = "Vectorized biological sequence analysis: batch operations on a NumPy array representation"
 readme = "README.md"
 license = {text = "MIT"}
@@ -132,6 +132,7 @@ ignore = [
 "benchmarks/*.py" = ["D", "F401", "F841", "F541", "E501"]  # Relax rules for benchmarks
 # LaTeX output is full of braces, so percent-formatting (UP031) is clearer than f-strings here.
 "paper/*.py" = ["D", "C408", "E501", "UP031"]
+"media/*.py" = ["D", "E501", "I001"]  # animation scenes; import order is grouped for readability
 
 [tool.isort]
 profile = "black"

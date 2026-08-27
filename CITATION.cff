@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
 title: "Seqcore: A High-Performance Biological Sequence Analysis Library"
-version: 0.4.0
-date-released: 2026-08-26
+version: 0.5.0
+date-released: 2026-08-27
 url: "https://github.com/pritampanda15/seqcore"
 repository-code: "https://github.com/pritampanda15/seqcore"
 license: MIT

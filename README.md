@@ -138,7 +138,10 @@ pockets = sc.find_pockets(structure)
 mol = sc.Molecule.from_smiles("CCO")
 
 # Molecular properties
-mw = sc.molecular_weight(molecules)
+# Note: sc.molecular_weight is the sequence version. For molecules, import the
+# molecules one directly -- the two share a name and the sequence one wins.
+from seqcore.molecules import molecular_weight
+mw = molecular_weight(molecules)
 logp = sc.logp(molecules)
 hbd = sc.h_bond_donors(molecules)
 
@@ -260,6 +263,29 @@ Reproduce with:
 python benchmarks/benchmark_suite.py
 ```
 
+### Domain modules
+
+The molecules, structural biology and phylogenetics modules are benchmarked
+separately by `benchmarks/benchmark_modules.py` against RDKit, SciPy, Biopython
+and a NumPy reference.
+
+| Operation | Reference | Seqcore | vs reference |
+|-----------|-----------|--------:|-------------:|
+| SASA (5,000 atoms) | — | 0.17s | — |
+| `find_contacts` (5,000 atoms) | scipy cKDTree | 0.12s | 0.06x |
+| `tanimoto_similarity` (2000x2000) | RDKit bulk | 0.076s | 0.66x |
+| `morgan_fingerprint` (2,000 mols) | RDKit | 0.045s | 0.32x |
+| `molecular_weight` (2,000 mols) | RDKit | 0.0005s | 0.68x |
+| Neighbour-joining, `metric="hamming"` | Biopython | 0.028s @ 64 taxa | **3.0x** |
+| `allele_frequency` (2,000 variants) | NumPy | 0.003s | **2.5x** |
+
+The molecule functions wrap RDKit and are not expected to beat it — the goal is
+that they no longer charge a large multiple for the convenience.
+
+```bash
+python benchmarks/benchmark_modules.py
+```
+
 ### When to use something else
 
 - **Pairwise alignment** is a NumPy anti-diagonal wavefront. Far faster than a
@@ -269,24 +295,27 @@ python benchmarks/benchmark_suite.py
   Biopython's `str.translate`. No vectorization advantage is available.
 - **k-mer counting** switches to a `Counter` over strings once `4**k` exceeds the
   number of windows, because past that point almost every k-mer is unique.
+- **Tree building** is still an O(n³) Python loop. With `metric="hamming"` that,
+  rather than the distance matrix, is the bottleneck above a few hundred taxa.
+- **`nucleotide_diversity` and `tajimas_d`** are O(n²) over sequence pairs
+  (0.21s for 160 sequences).
 - **GPU**: not used by any compute path. See below.
 
-### GPU
+### Choosing a phylogenetic distance metric
 
-Seqcore ships CuPy device-management helpers but **does not compute on the GPU**.
-`benchmarks/benchmark_gpu.py` measures what a GPU backend would be worth by
-timing CuPy transcriptions of Seqcore's kernels (NVIDIA A10G):
+`neighbor_joining()` and `upgma()` default to `metric="identity"`, which aligns
+every pair with Needleman–Wunsch. That is correct for **unaligned** sequences and
+costs O(n²L²).
 
-| | Data resident on device | Per call, incl. host transfer |
-|---|---|---|
-| Reverse complement | 326x | **8.5x** |
-| GC content | 36x | **5.1x** |
-| Translation | 32x | **13.3x** |
-| k-mers (k=8) | 23x | **20.4x** |
+If your input is **already an alignment**, pass `metric="hamming"`:
 
-PCIe transfer, not arithmetic, decides the outcome — for reverse complement it is
-97% of per-call time. A GPU backend is only worth building if the encoded matrix
-stays resident on the device across many operations.
+```python
+tree = sc.neighbor_joining(aligned, metric="hamming")   # 48 taxa: 6.2s -> 0.016s
+```
+
+The two are not interchangeable — once sequences diverge enough for the aligner
+to open gaps they give different distances (up to 0.24 apart in our tests), which
+is why the faster path is opt-in rather than the default.
 
 ## Requirements
 
@@ -331,7 +360,7 @@ If you use Seqcore in your research, please cite:
   author = {Panda, Pritam Kumar},
   title = {Seqcore: High-performance biological sequence analysis},
   url = {https://github.com/pritampanda15/seqcore},
-  version = {0.4.0},
+  version = {0.5.0},
   year = {2026},
   institution = {Stanford University}
 }
