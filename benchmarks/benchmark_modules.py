@@ -192,13 +192,30 @@ def bench_phylogenetics(records, sizes):
             ("neighbor_joining", sc.neighbor_joining, "nj"),
             ("upgma", sc.upgma, "upgma"),
         ):
-            t, e = timeit(lambda f=sc_fn, a=arr: f(a), repeats=1)
 
             def bio(m=bio_method, c=calc, a=aln):
                 DistanceTreeConstructor(c, m).build_tree(a)
 
             r, _ = timeit(bio, repeats=1)
-            row(records, "phylogenetics", name, n, t, r, "Biopython", e)
+
+            # Biopython's identity calculator compares an existing alignment
+            # column by column. Seqcore's "identity" metric aligns every pair
+            # first, which is strictly more work; "hamming" is the like-for-like
+            # operation. Both are recorded so the comparison is not misread.
+            t, e = timeit(lambda f=sc_fn, a=arr: f(a), repeats=1)
+            row(records, "phylogenetics", name + " (identity, realigns)", n, t, r, "Biopython", e)
+
+            t, e = timeit(lambda f=sc_fn, a=arr: f(a, metric="hamming"), repeats=1)
+            row(
+                records,
+                "phylogenetics",
+                name + " (hamming, like-for-like)",
+                n,
+                t,
+                r,
+                "Biopython",
+                e,
+            )
 
 
 # ----------------------------------------------------------------- population
@@ -276,7 +293,7 @@ def main():
     else:
         mol_sizes = [100, 500, 2000]
         struct_sizes = [100, 250, 500, 1000]
-        phylo_sizes = [16, 24, 32, 48]
+        phylo_sizes = [16, 32, 64, 128]
         pop_sizes = [100, 500, 2000]
         popseq_sizes = [20, 40, 80, 160]
 
