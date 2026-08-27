@@ -5,6 +5,15 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/pritampanda15/Seqcore/blob/main/media/seqcore_explainer.mp4">
+    <img src="https://raw.githubusercontent.com/pritampanda15/Seqcore/main/media/seqcore_explainer.gif" width="640" alt="Seqcore reads a whole batch of sequences at once instead of one letter at a time"/>
+  </a>
+  <br/>
+  <sub><i>Reading one letter at a time, versus reading the whole batch at once.
+  <a href="https://github.com/pritampanda15/Seqcore/blob/main/media/seqcore_explainer.mp4">Watch the full 90-second explainer</a>.</i></sub>
+</p>
+
 High-performance biological sequence analysis library for Python.
 
 A unified, NumPy-vectorized library for genomics, proteomics, structural biology, and drug design.
