@@ -23,13 +23,13 @@ against the previous implementation, measured by
 - **Translation is 21.6x faster** (100k x 1000 bp: 4.49s -> 0.21s). It no longer
   decodes sequences to Python strings or loops per codon; codons index a
   precomputed table directly on the encoded matrix, and the result is already a
-  valid protein encoding. Now 25.9x Biopython.
+  valid protein encoding.
 - **Global alignment is 19.9x faster** at L=3200 (4.22s -> 0.21s). The scalar
   double loop over DP cells was replaced with an anti-diagonal wavefront, cutting
   interpreter-level iterations from O(mn) to O(m+n). The recurrence is unchanged
   and the score matrix is bit-identical. Still slower than Biopython's C aligner.
 - **GC content is 5.1x faster** (100k x 1000 bp: 0.187s -> 0.037s) via a masked
-  2-D reduction instead of a per-sequence loop. Now 37.9x Biopython.
+  2-D reduction instead of a per-sequence loop.
 - **k-mer counting is 4.7x faster at k=8** through base-5 integer encoding plus
   `np.unique`, with only distinct k-mers decoded back to strings. Guarded by a
   `4**k <= windows` dispatch rule: past that point nearly every k-mer is unique,
@@ -38,8 +38,14 @@ against the previous implementation, measured by
 - **Batch encoding is 1.8x faster** — one concatenation and one table gather for
   the whole batch rather than three dispatches per sequence.
 - **Reverse complement is 1.5x faster** by folding the complement table into the
-  reversal so the batch is traversed once. Remains at ~0.86x Biopython; this path
-  is memory-bandwidth bound, not dispatch bound.
+  reversal so the batch is traversed once. Still slower than Biopython; this path
+  is memory-bandwidth bound, not dispatch bound, so there is no vectorization
+  advantage to gain.
+
+Comparisons against Biopython and pure Python are platform dependent and are
+reported, with the machine attached, in the README and in `paper/`. The speedups
+above are against Seqcore's own previous implementation on one machine, which is
+what a changelog should measure.
 
 ### Added
 
