@@ -161,7 +161,7 @@ $\mathrm{T}/\mathrm{U}\!\to\!3$, $\mathrm{N}\!\to\!4$; amino acids use an
 analogous 23-symbol alphabet. Entries beyond $\ell_i$ in row $i$ are padding and
 carry no meaning.
 
-Two properties of this layout govern everything that follows. First, any
+Two properties of this layout matter for what follows. First, any
 elementwise operation on residues becomes an operation on $D$, expressible as a
 constant number of NumPy calls regardless of $n$. Second, correctness on ragged
 batches reduces to a single recurring question, whether padding is excluded,
@@ -310,8 +310,8 @@ difference between them, and Section~\ref{sec:res:platform} compares the two. We
 include a desktop-class Apple silicon machine because it is increasingly the
 hardware on which this kind of analysis is actually run.
 
-Unless stated otherwise, reported numbers are from the \PrimaryMachine. It is
-not the faster of the two; it is the reproducible one. A dedicated instance is
+Unless stated otherwise, reported numbers are from the \PrimaryMachine, which is
+the slower of the two. We chose it for reproducibility. A dedicated instance is
 otherwise idle, whereas a desktop is generally also being used for something
 else, and that shows up in the measurements: on the dedicated instance the
 Seqcore-to-Biopython ratios agree to within 2\% across runs made fourteen hours
@@ -437,11 +437,11 @@ is the same on both machines.\fi}
 \subsection{Behaviour across machines}
 \label{sec:res:platform}
 
-Absolute times depend strongly on the machine, so it is worth asking whether any
-conclusion does. Figure~\ref{fig:kmers}b repeats the comparison on both
+Absolute times depend strongly on the machine. Whether any conclusion does is a
+separate question, and Figure~\ref{fig:kmers}b repeats the comparison on both
 machines. Seqcore runs $\OtherFasterLo$--$\OtherFasterHi\times$ faster on the
 \FasterMachine{} than on the dedicated instance in absolute terms. A desktop
-part outperforming a cloud vCPU allocation is worth knowing when choosing where
+part outperforms a cloud vCPU allocation here, which matters when choosing where
 to run this kind of analysis. The sign of every comparison is nonetheless
 identical: the same three operations win, the same two lose, and the $k$-mer
 dispatch crossover falls at the same $k$.
@@ -480,17 +480,16 @@ innermost loop; restricting each atom to the neighbours whose inflated sphere
 can reach it makes the cost roughly linear rather than quadratic, and at 5000
 atoms takes it from tens of minutes to a fraction of a second.
 
-Two of these results mean something different from the others. The molecule
-functions wrap
+The molecule functions wrap
 RDKit, and the structural neighbour searches wrap a spatial index; for those the
 honest target is parity, not victory, and Figure~\ref{fig:modules}a shows them
 sitting below $1$. A wrapper that costs a few tens of percent buys API
 consistency at a defensible price; the same wrapper costing seventy times was
 simply a defect.
 
-Figure~\ref{fig:modules}b makes a different point. For tree building, the
-user-facing choice of distance metric spans three orders of magnitude,
-far more than any implementation detail in this paper. \texttt{identity} aligns
+For tree building, the user-facing choice of distance metric spans three orders
+of magnitude (Figure~\ref{fig:modules}b), far more than any implementation
+detail in this paper. \texttt{identity} aligns
 every pair with Needleman--Wunsch, which is correct for unaligned input and
 costs $O(n^2L^2)$; \texttt{hamming} compares an existing alignment column by
 column. The two are not interchangeable, and disagree once sequences diverge
@@ -520,8 +519,7 @@ like-for-like comparison.}
 \subsection{Where Seqcore is not the right tool}
 \label{sec:limits}
 
-Two operations do not favour this design, and we state them plainly rather than
-omitting them.
+Two operations do not favour this design.
 
 \textbf{Reverse complement} runs at $\RCvsBio\times$ Biopython ($\RCms$\,ms versus
 $\RCbioms$\,ms at $\BatchN$ sequences\ifMultiMachine; $\OtherRCvsBio\times$ on
@@ -560,15 +558,14 @@ Seqcore results in this paper are single-core CPU measurements
 
 Seqcore does not currently compute on the GPU. Because the representation in
 Section~\ref{sec:layout} is a plain numeric array, porting the elementwise
-kernels to CuPy~\cite{okuta2017cupy} is mechanically straightforward, so it is
-worth measuring what that port would be worth before undertaking it. We
+kernels to CuPy~\cite{okuta2017cupy} is mechanically straightforward, so
+measuring what it would buy is cheaper than undertaking it. We
 transcribed four Seqcore kernels to CuPy against the identical ordinal matrix,
 verified that they reproduce the CPU results, and timed them on an NVIDIA A10G
 (Figure~\ref{fig:gpu}). Timings synchronize the CUDA stream inside the measured
 region, since CuPy launches kernels asynchronously.
 
-The result is a caution against the obvious headline. Measured with the matrix
-already resident on the device, the kernels are 23--326$\times$ faster than
+Measured with the matrix already resident on the device, the kernels are 23--326$\times$ faster than
 Seqcore's CPU path. Measured per call from host memory, which is what a user
 calling \texttt{sc.reverse\_complement(arr)} would actually experience, the same
 kernels are 5--20$\times$ faster, because transferring the batch across
@@ -585,8 +582,7 @@ resident-data limit. For reverse complement the crossover is fast: three
 chained operations already double the benefit. $k$-mer counting begins near its
 ceiling.
 
-The design implication is specific. A GPU backend implemented per function, with
-each call copying in and out, would deliver roughly $5\times$ on the
+A GPU backend implemented per function, with each call copying in and out, would deliver roughly $5\times$ on the
 bandwidth-bound operations. Capturing the larger factor requires
 \texttt{DNAArray} itself to hold device memory, transferring only at the I/O
 boundaries. That is an architectural decision about where the array lives, not a
@@ -630,18 +626,18 @@ source with Figure~\ref{fig:kmers}b.}
 \section{Discussion}
 
 Seqcore's premise is that the representation, not the algorithm, is what usually
-limits this class of Python library. None of the techniques used here are novel
-in themselves. Masked reductions, lookup tables and wavefront dynamic
-programming are all standard. They only become available once a batch of
-sequences is a dense numeric array rather than a list of objects. Choosing that
+limits this class of Python library. None of the techniques used here are
+novel: masked reductions, lookup tables and wavefront dynamic programming are
+all standard. They only become available once a batch of sequences is a dense
+numeric array rather than a list of objects. Choosing that
 representation first is what makes the rest follow.
 
 The domain modules in Section~\ref{sec:res:modules} qualify that claim rather
 than confirming it. There the costs were repeated parsing, element-wise
 conversion at a language boundary, and the absence of a spatial index. None of
-those is a representation problem. What the two halves share is narrower and
-perhaps more useful: in each case the measured time was going somewhere other
-than the arithmetic the user asked for, and the fix was to find where.
+those is a representation problem. The two halves share something narrower: in
+each case the measured time was going somewhere other than the arithmetic the
+user asked for, and the work was finding where.
 
 Two points generalize beyond this library. An optimization needs a stated
 domain of applicability. The $k$-mer result is the clearest case:
@@ -657,11 +653,11 @@ mechanically. We would encourage this as a default for software papers: it costs
 little, and it makes the difference between a performance claim and a
 reproducible measurement.
 
-Finally, we think reporting the unfavourable comparisons is part of the
-contribution rather than a caveat to it. A library that is $\GCvsBio\times$ faster
+Reporting the unfavourable comparisons is part of the contribution. A library
+that is $\GCvsBio\times$ faster
 than Biopython at GC content and $\AlignSlower\times$ slower at pairwise alignment is
 useful, but only to a user who can tell which regime they are in. Presenting only
-the favourable half would make the library harder to use correctly, not easier.
+the favourable half would make the library harder to use correctly.
 
 \subsection*{Future work}
 
