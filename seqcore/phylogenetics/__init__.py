@@ -204,7 +204,15 @@ def _compute_distance_matrix(
     sequences: BioArray | list[str],
     metric: str = "identity",
 ) -> tuple[np.ndarray, list[str]]:
-    """Compute distance matrix from sequences."""
+    """Compute distance matrix from sequences.
+
+    ``identity`` aligns every pair with Needleman-Wunsch, which costs
+    O(n^2 L^2) and is the right choice for unaligned sequences. ``hamming``
+    compares equal-length sequences column by column in a single vectorized
+    pass; it is orders of magnitude faster, and is the appropriate metric when
+    the input is already an alignment. The two do not agree once sequences
+    diverge enough for the aligner to open gaps, so the default is unchanged.
+    """
     from seqcore.alignment import pairwise_distance
     from seqcore.core.arrays import BioArray
 
@@ -215,19 +223,33 @@ def _compute_distance_matrix(
         seqs = sequences
         names = [f"seq_{i}" for i in range(len(seqs))]
 
-    dm = pairwise_distance(seqs, metric="identity")
+    dm = pairwise_distance(seqs, metric=metric)
+    if metric == "hamming" and len(seqs) and len(seqs[0]):
+        # Return a fraction, so both metrics are on the same 0-1 scale.
+        dm = dm / len(seqs[0])
     return dm, names
 
 
 def neighbor_joining(
     sequences_or_matrix: BioArray | list[str] | np.ndarray,
     names: list[str] | None = None,
+    metric: str = "identity",
 ) -> PhyloTree:
     """Build tree using Neighbor-Joining algorithm.
 
     Args:
         sequences_or_matrix: Sequences or precomputed distance matrix.
         names: Leaf names (required if using distance matrix).
+        metric: Distance metric used when sequences are supplied.
+            "identity" (default) aligns each pair, costing O(n^2 L^2).
+            "hamming" compares equal-length sequences column by column and is
+            far faster, but requires the input to be aligned already and gives
+            different distances once the aligner would open gaps.
+        metric: Distance metric used when sequences are supplied.
+            "identity" (default) aligns each pair, costing O(n^2 L^2).
+            "hamming" compares equal-length sequences column by column and is
+            far faster, but requires the input to be aligned already and gives
+            different distances once the aligner would open gaps.
 
     Returns:
         PhyloTree object.
@@ -242,7 +264,7 @@ def neighbor_joining(
         if names is None:
             names = [f"seq_{i}" for i in range(len(dm))]
     else:
-        dm, names = _compute_distance_matrix(sequences_or_matrix)
+        dm, names = _compute_distance_matrix(sequences_or_matrix, metric=metric)
 
     n = len(dm)
     nodes = [TreeNode(name=name) for name in names]
@@ -333,12 +355,18 @@ def neighbor_joining(
 def upgma(
     sequences_or_matrix: BioArray | list[str] | np.ndarray,
     names: list[str] | None = None,
+    metric: str = "identity",
 ) -> PhyloTree:
     """Build tree using UPGMA algorithm.
 
     Args:
         sequences_or_matrix: Sequences or precomputed distance matrix.
         names: Leaf names (required if using distance matrix).
+        metric: Distance metric used when sequences are supplied.
+            "identity" (default) aligns each pair, costing O(n^2 L^2).
+            "hamming" compares equal-length sequences column by column and is
+            far faster, but requires the input to be aligned already and gives
+            different distances once the aligner would open gaps.
 
     Returns:
         PhyloTree object.
@@ -352,7 +380,7 @@ def upgma(
         if names is None:
             names = [f"seq_{i}" for i in range(len(dm))]
     else:
-        dm, names = _compute_distance_matrix(sequences_or_matrix)
+        dm, names = _compute_distance_matrix(sequences_or_matrix, metric=metric)
 
     n = len(dm)
     nodes = [TreeNode(name=name) for name in names]

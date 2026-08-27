@@ -183,6 +183,41 @@ def test_align_gap_extend_is_documented_as_unused():
     assert sc.align(s1, s2, gap_extend=-1).score == sc.align(s1, s2, gap_extend=-99).score
 
 
+@pytest.mark.parametrize("n_seqs", [1, 2, 5, 12])
+def test_pairwise_hamming_matches_per_pair_reference(n_seqs):
+    """The vectorized all-pairs Hamming must equal the per-pair definition."""
+    from seqcore.alignment import _hamming_distance, pairwise_distance
+
+    rng = random.Random(SEED + 7 + n_seqs)
+    for _ in range(20):
+        length = rng.randint(0, 60)
+        seqs = ["".join(rng.choices("ACGTN", k=length)) for _ in range(n_seqs)]
+        got = pairwise_distance(seqs, metric="hamming")
+        expected = np.zeros((n_seqs, n_seqs), dtype=np.float32)
+        for i in range(n_seqs):
+            for j in range(i + 1, n_seqs):
+                expected[i, j] = expected[j, i] = _hamming_distance(seqs[i], seqs[j])
+        np.testing.assert_array_equal(got, expected)
+
+
+def test_pairwise_hamming_rejects_ragged_input():
+    """Hamming is undefined for unequal lengths and must say so."""
+    from seqcore.alignment import pairwise_distance
+
+    with pytest.raises(ValueError, match="equal length"):
+        pairwise_distance(["AC", "ACG"], metric="hamming")
+
+
+def test_tree_metric_default_is_unchanged():
+    """Adding the metric option must not alter the default tree."""
+    rng = random.Random(SEED + 8)
+    seqs = sc.DNAArray(["".join(rng.choices("ACGT", k=120)) for _ in range(8)])
+    assert sc.neighbor_joining(seqs).newick() == (
+        sc.neighbor_joining(seqs, metric="identity").newick()
+    )
+    assert sc.upgma(seqs).newick() == sc.upgma(seqs, metric="identity").newick()
+
+
 def test_empty_and_degenerate_batches():
     """Degenerate inputs must not raise."""
     assert len(sc.DNAArray([])) == 0

@@ -353,14 +353,16 @@ def pairwise_distance(
     seqs = sequences.sequences if isinstance(sequences, BioArray) else sequences
 
     n = len(seqs)
+
+    if metric == "hamming":
+        return _pairwise_hamming(seqs)
+
     dm = np.zeros((n, n), dtype=np.float32)
 
     for i in range(n):
         for j in range(i + 1, n):
             if metric == "edit":
                 dist = _edit_distance(seqs[i], seqs[j])
-            elif metric == "hamming":
-                dist = _hamming_distance(seqs[i], seqs[j])
             elif metric == "identity":
                 result = _needleman_wunsch(seqs[i], seqs[j])
                 dist = 1.0 - result.identity
@@ -370,6 +372,41 @@ def pairwise_distance(
             dm[i, j] = dist
             dm[j, i] = dist
 
+    return dm
+
+
+def _pairwise_hamming(seqs: list[str], block: int = 4096) -> np.ndarray:
+    """All-pairs Hamming distances, computed as a single matrix product.
+
+    For a fixed position, two sequences match exactly when their one-hot
+    encodings share a 1. Summing that agreement over positions is therefore
+    ``O @ O.T`` on the flattened one-hot matrix, which BLAS evaluates far faster
+    than a Python loop over pairs. Positions are processed in blocks so the
+    one-hot expansion stays bounded regardless of sequence length.
+    """
+    n = len(seqs)
+    if n == 0:
+        return np.zeros((0, 0), dtype=np.float32)
+
+    lengths = {len(s) for s in seqs}
+    if len(lengths) > 1:
+        raise ValueError("Hamming distance requires equal length sequences")
+
+    length = lengths.pop()
+    if length == 0:
+        return np.zeros((n, n), dtype=np.float32)
+
+    data = np.frombuffer("".join(seqs).encode("ascii"), dtype=np.uint8).reshape(n, length)
+    symbols = np.unique(data)
+
+    matches = np.zeros((n, n), dtype=np.float32)
+    for start in range(0, length, block):
+        window = data[:, start : start + block]
+        onehot = (window[:, :, None] == symbols[None, None, :]).astype(np.float32)
+        matches += onehot.reshape(n, -1) @ onehot.reshape(n, -1).T
+
+    dm = length - matches
+    np.fill_diagonal(dm, 0.0)
     return dm
 
 
