@@ -28,6 +28,9 @@ class Molecule:
     bonds: list[dict[str, Any]] = field(default_factory=list)
     coordinates: np.ndarray | None = None
     properties: dict[str, Any] = field(default_factory=dict)
+    # Parsing SMILES is the dominant cost of every property calculation, so the
+    # parsed molecule is cached here rather than rebuilt on each call.
+    _rdkit_cache: Any = field(default=None, compare=False, repr=False)
 
     @classmethod
     def from_smiles(cls, smiles: str, name: str = "") -> Molecule:
@@ -134,11 +137,14 @@ class Molecule:
             RDKit Mol object.
 
         """
+        if self._rdkit_cache is not None:
+            return self._rdkit_cache
         try:
             from rdkit import Chem
 
             if self.smiles:
-                return Chem.MolFromSmiles(self.smiles)
+                self._rdkit_cache = Chem.MolFromSmiles(self.smiles)
+                return self._rdkit_cache
             else:
                 raise ValueError("SMILES required for RDKit conversion")
         except ImportError as err:
@@ -206,7 +212,7 @@ def molecular_weight(molecules: Molecule | list[Molecule]) -> np.ndarray:
         weights = []
         for mol in mols:
             if mol.smiles:
-                rdkit_mol = Chem.MolFromSmiles(mol.smiles)
+                rdkit_mol = mol.to_rdkit()
                 if rdkit_mol:
                     weights.append(Descriptors.MolWt(rdkit_mol))
                 else:
@@ -259,7 +265,7 @@ def logp(molecules: Molecule | list[Molecule]) -> np.ndarray:
         values = []
         for mol in mols:
             if mol.smiles:
-                rdkit_mol = Chem.MolFromSmiles(mol.smiles)
+                rdkit_mol = mol.to_rdkit()
                 if rdkit_mol:
                     values.append(Descriptors.MolLogP(rdkit_mol))
                 else:
@@ -292,7 +298,7 @@ def h_bond_donors(molecules: Molecule | list[Molecule]) -> np.ndarray:
         values = []
         for mol in mols:
             if mol.smiles:
-                rdkit_mol = Chem.MolFromSmiles(mol.smiles)
+                rdkit_mol = mol.to_rdkit()
                 if rdkit_mol:
                     values.append(rdMolDescriptors.CalcNumHBD(rdkit_mol))
                 else:
@@ -324,7 +330,7 @@ def h_bond_acceptors(molecules: Molecule | list[Molecule]) -> np.ndarray:
         values = []
         for mol in mols:
             if mol.smiles:
-                rdkit_mol = Chem.MolFromSmiles(mol.smiles)
+                rdkit_mol = mol.to_rdkit()
                 if rdkit_mol:
                     values.append(rdMolDescriptors.CalcNumHBA(rdkit_mol))
                 else:
@@ -356,7 +362,7 @@ def tpsa(molecules: Molecule | list[Molecule]) -> np.ndarray:
         values = []
         for mol in mols:
             if mol.smiles:
-                rdkit_mol = Chem.MolFromSmiles(mol.smiles)
+                rdkit_mol = mol.to_rdkit()
                 if rdkit_mol:
                     values.append(rdMolDescriptors.CalcTPSA(rdkit_mol))
                 else:
@@ -388,7 +394,7 @@ def rotatable_bonds(molecules: Molecule | list[Molecule]) -> np.ndarray:
         values = []
         for mol in mols:
             if mol.smiles:
-                rdkit_mol = Chem.MolFromSmiles(mol.smiles)
+                rdkit_mol = mol.to_rdkit()
                 if rdkit_mol:
                     values.append(rdMolDescriptors.CalcNumRotatableBonds(rdkit_mol))
                 else:
@@ -499,18 +505,23 @@ def morgan_fingerprint(
     has_rdkit, Chem, _, rdMolDescriptors, AllChem = _try_rdkit("morgan", molecules)
 
     if has_rdkit:
-        fps = []
-        for mol in mols:
-            if mol.smiles:
-                rdkit_mol = Chem.MolFromSmiles(mol.smiles)
-                if rdkit_mol:
-                    fp = AllChem.GetMorganFingerprintAsBitVect(rdkit_mol, radius, nBits=n_bits)
-                    fps.append(np.array(fp))
-                else:
-                    fps.append(np.zeros(n_bits))
-            else:
-                fps.append(np.zeros(n_bits))
-        return np.array(fps)
+        from rdkit import DataStructs
+
+        # np.array() on an RDKit bit vector walks it one bit at a time in
+        # Python and dominates the runtime. ConvertToNumpyArray does the same
+        # thing inside RDKit.
+        out = np.zeros((len(mols), n_bits), dtype=np.float64)
+        scratch = np.zeros(n_bits, dtype=np.int8)
+        for i, mol in enumerate(mols):
+            if not mol.smiles:
+                continue
+            rdkit_mol = mol.to_rdkit()
+            if rdkit_mol is None:
+                continue
+            fp = AllChem.GetMorganFingerprintAsBitVect(rdkit_mol, radius, nBits=n_bits)
+            DataStructs.ConvertToNumpyArray(fp, scratch)
+            out[i] = scratch
+        return out
 
     # Placeholder without RDKit
     return np.zeros((len(mols), n_bits))
@@ -542,7 +553,7 @@ def rdkit_fingerprint(
         fps = []
         for mol in mols:
             if mol.smiles:
-                rdkit_mol = Chem.MolFromSmiles(mol.smiles)
+                rdkit_mol = mol.to_rdkit()
                 if rdkit_mol:
                     fp = RDKFingerprint(rdkit_mol, fpSize=n_bits)
                     fps.append(np.array(fp))
@@ -577,7 +588,7 @@ def maccs_fingerprint(molecules: Molecule | list[Molecule]) -> np.ndarray:
         fps = []
         for mol in mols:
             if mol.smiles:
-                rdkit_mol = Chem.MolFromSmiles(mol.smiles)
+                rdkit_mol = mol.to_rdkit()
                 if rdkit_mol:
                     fp = MACCSkeys.GenMACCSKeys(rdkit_mol)
                     fps.append(np.array(fp))
@@ -619,23 +630,17 @@ def tanimoto_similarity(
     # Calculate Tanimoto: |A & B| / |A | B|
     # For binary fingerprints: intersection / (sum1 + sum2 - intersection)
 
-    n1 = len(fingerprints1)
-    n2 = len(fingerprints2)
-    similarity = np.zeros((n1, n2))
+    # |A & B| for binary fingerprints is a plain dot product, so the whole
+    # matrix is one BLAS call; |A | B| follows from |A| + |B| - |A & B|.
+    a = np.ascontiguousarray(fingerprints1, dtype=bool)
+    b = np.ascontiguousarray(fingerprints2, dtype=bool)
 
-    for i in range(n1):
-        for j in range(n2):
-            fp1 = fingerprints1[i]
-            fp2 = fingerprints2[j]
+    intersection = a.astype(np.float64) @ b.astype(np.float64).T
+    union = a.sum(axis=1, dtype=np.float64)[:, None]
+    union = union + b.sum(axis=1, dtype=np.float64)[None, :] - intersection
 
-            intersection = np.sum(np.logical_and(fp1, fp2))
-            union = np.sum(np.logical_or(fp1, fp2))
-
-            if union > 0:
-                similarity[i, j] = intersection / union
-            else:
-                similarity[i, j] = 0.0
-
+    with np.errstate(invalid="ignore", divide="ignore"):
+        similarity = np.where(union > 0, intersection / union, 0.0)
     return similarity
 
 
@@ -715,7 +720,7 @@ def substructure_search(
         matches = []
         for mol in mols:
             if mol.smiles:
-                rdkit_mol = Chem.MolFromSmiles(mol.smiles)
+                rdkit_mol = mol.to_rdkit()
                 if rdkit_mol and query:
                     matches.append(rdkit_mol.HasSubstructMatch(query))
                 else:
@@ -749,7 +754,7 @@ def generate_conformers(
     has_rdkit, Chem, _, _, AllChem = _try_rdkit("conformers", molecule)
 
     if has_rdkit and molecule.smiles:
-        rdkit_mol = Chem.MolFromSmiles(molecule.smiles)
+        rdkit_mol = molecule.to_rdkit()
         if rdkit_mol:
             rdkit_mol = Chem.AddHs(rdkit_mol)
             AllChem.EmbedMultipleConfs(

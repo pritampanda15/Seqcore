@@ -218,6 +218,70 @@ def test_tree_metric_default_is_unchanged():
     assert sc.upgma(seqs).newick() == sc.upgma(seqs, metric="identity").newick()
 
 
+def test_tanimoto_matches_pairwise_definition():
+    """Vectorized Tanimoto must equal the per-pair intersection/union form."""
+    from seqcore.molecules import tanimoto_similarity
+
+    rng = np.random.default_rng(SEED)
+    for trial in range(30):
+        n1, n2 = int(rng.integers(1, 8)), int(rng.integers(1, 8))
+        width = int(rng.integers(1, 40))
+        a = (rng.random((n1, width)) < 0.3).astype(np.float64)
+        b = (rng.random((n2, width)) < 0.3).astype(np.float64)
+        if trial % 5 == 0:
+            a[0] = 0  # exercise the empty-union branch
+
+        got = tanimoto_similarity(a, b)
+        expected = np.zeros((n1, n2))
+        for i in range(n1):
+            for j in range(n2):
+                inter = np.sum(np.logical_and(a[i], b[j]))
+                union = np.sum(np.logical_or(a[i], b[j]))
+                expected[i, j] = inter / union if union > 0 else 0.0
+        np.testing.assert_allclose(got, expected)
+
+
+def test_tanimoto_accepts_one_dimensional_input():
+    """A single fingerprint is treated as a batch of one."""
+    from seqcore.molecules import tanimoto_similarity
+
+    sim = tanimoto_similarity(np.array([1, 0, 1, 1]), np.array([1, 1, 0, 1]))
+    assert sim.shape == (1, 1)
+    assert sim[0, 0] == pytest.approx(2 / 4)
+
+
+def test_morgan_fingerprint_matches_rdkit():
+    """The fast bit-vector conversion must reproduce RDKit's own bits."""
+    pytest.importorskip("rdkit")
+    from rdkit import Chem, RDLogger
+    from rdkit.Chem import AllChem
+
+    from seqcore.molecules import Molecule, morgan_fingerprint
+
+    RDLogger.DisableLog("rdApp.*")
+    smiles = ["CCO", "c1ccccc1", "CC(=O)O", "", "CN1C=NC2=C1C(=O)N(C)C(=O)N2C"]
+    got = morgan_fingerprint([Molecule.from_smiles(s) for s in smiles])
+
+    expected = []
+    for s in smiles:
+        mol = Chem.MolFromSmiles(s) if s else None
+        expected.append(
+            np.array(AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048))
+            if mol is not None
+            else np.zeros(2048)
+        )
+    np.testing.assert_array_equal(got, np.array(expected))
+
+
+def test_molecule_caches_its_parsed_form():
+    """to_rdkit parses once; repeated property calls reuse the same object."""
+    pytest.importorskip("rdkit")
+    from seqcore.molecules import Molecule
+
+    mol = Molecule.from_smiles("CCO")
+    assert mol.to_rdkit() is mol.to_rdkit()
+
+
 def test_empty_and_degenerate_batches():
     """Degenerate inputs must not raise."""
     assert len(sc.DNAArray([])) == 0
