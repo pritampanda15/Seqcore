@@ -241,21 +241,28 @@ per-element implementation already exists. Both cases are reported below.
 100,000 sequences x 1000 bp. `Speedup` is Seqcore vs the **faster** of Biopython
 and idiomatic pure Python; values below 1.0 mean Seqcore is slower.
 
-| Operation | Mac mini (M4 Pro) | AWS g5.2xlarge (EPYC 7R32) |
-|-----------|------------------:|---------------------------:|
-| GC content | **16.2x** | **6.4x** |
-| Translation | **27.9x** | **18.1x** |
-| k-mer counting (k=8, 2000 seqs) | **4.4x** | **9.2x** |
-| k-mer counting (k=12) | 1.7x | 1.4x |
-| Reverse complement | 0.94x | 0.88x |
-| Global alignment (L=3200) | 0.07x | 0.03x |
+| Operation | AWS g5.2xlarge (EPYC 7R32) | Mac mini (M4 Pro) |
+|-----------|---------------------------:|------------------:|
+| GC content | **6.3x** | **9.4x** |
+| Translation | **17.9x** | **13.8x** |
+| k-mer counting (k=8, 2000 seqs) | **9.2x** | **7.2x** |
+| k-mer counting (k=12) | **1.4x** | **1.7x** |
+| Reverse complement | 0.85x | 0.86x |
+| Global alignment (L=3200) | 0.03x | 0.06x |
 
 *Both machines run Python 3.12, NumPy 2.5.2, Biopython 1.88; best of 5 runs,
 each implementation in a fresh subprocess. Raw results in `benchmarks/results/`.*
 
 Every conclusion holds on both machines — the same operations win and lose, in
-the same order — but absolute times differ by 2.4–4.5x, so treat any single
-speedup figure as a point estimate.
+the same order — but the magnitudes differ, so treat any single speedup figure
+as a point estimate rather than a property of the library.
+
+The Mac mini is 1.7–2.2x faster than the cloud instance in absolute terms. We
+still quote the cloud instance in the paper, because it is the reproducible one:
+its ratios agree to within 2% across runs made 14 hours apart, whereas the same
+ratios on a desktop that is also being used for other work moved by 35–52%
+between an idle session and a busy one. If you benchmark on your own laptop,
+measure it twice.
 
 Reproduce with:
 

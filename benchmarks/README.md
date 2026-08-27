@@ -38,6 +38,19 @@ for each operation (`str.count`, `str.translate`, `collections.Counter`), not a
 deliberately slow one. For several operations it beats Biopython, and it is the
 more honest baseline.
 
+### Measure on a quiet machine
+
+Absolute times move a lot with machine load, and not uniformly across
+operations, so ratios move too. Measured here:
+
+| Machine | Seqcore/Biopython ratio, two runs |
+|---|---|
+| Dedicated cloud instance, idle | agrees to within **2%** (14 h apart) |
+| Desktop also in use for other work | moves **35–52%** |
+
+A desktop is fine for spotting a regression. For a number you intend to publish,
+use a machine that is doing nothing else, and run it twice to confirm.
+
 ### Comparing against another checkout (development only)
 
 `--baseline` adds a second Seqcore checkout as an extra series, for tracking

@@ -82,9 +82,9 @@ $\GCvsBio\times$ Biopython) and translates in $\TransMs$\,ms
 report the regimes where Seqcore is \emph{not} the right tool: reverse
 complement sits at $\RCvsBio\times$ Biopython, and pairwise alignment is
 $\AlignSlower\times$ slower than Biopython's compiled aligner. \ifMultiMachine Results are
-reported on \NumMachines{} machines --- a desktop Apple silicon Mac and a cloud
-Linux instance --- which agree on every conclusion while differing by up to
-$\PrimaryFasterHi\times$ in absolute time. \fi We additionally measure what a GPU
+reported on \NumMachines{} machines --- a cloud Linux instance and a desktop
+Apple silicon Mac --- which agree on every conclusion while differing by up to
+$\OtherFasterHi\times$ in absolute time. \fi We additionally measure what a GPU
 backend would be worth, and find that per-call host transfer, not arithmetic,
 would govern the outcome. Every vectorized routine is pinned to a naive scalar
 reference by randomized differential tests.
@@ -304,12 +304,21 @@ $O(mn)$ to $O(m+n)$ without altering the recurrence.}
 
 \ifMultiMachine
 Measurements were taken on two machines: \BenchHost{} running \BenchPlatform,
-and \OtherMachine{} with \OtherCores{} vCPUs. Both run CPython \BenchPython,
-NumPy \BenchNumpy{} and Biopython \BenchBiopython{} so that hardware is the only
-difference between them; unless stated otherwise, reported numbers are from the
-\PrimaryMachine, and Section~\ref{sec:res:platform} compares the two. We include
-a desktop-class Apple silicon machine because it is increasingly the hardware on
-which this kind of analysis is actually run.
+and \OtherMachine{} with \OtherCores{} cores. Both run CPython \BenchPython,
+NumPy \BenchNumpy{} and Biopython \BenchBiopython, so hardware is the only
+difference between them, and Section~\ref{sec:res:platform} compares the two. We
+include a desktop-class Apple silicon machine because it is increasingly the
+hardware on which this kind of analysis is actually run.
+
+Unless stated otherwise, reported numbers are from the \PrimaryMachine. It is
+not the faster of the two; it is the reproducible one. A dedicated instance is
+otherwise idle, whereas a desktop is generally also being used for something
+else, and that shows up in the measurements: on the dedicated instance the
+Seqcore-to-Biopython ratios agree to within 2\% across runs made fourteen hours
+apart, while on the desktop the same ratios moved by 35--52\% between an idle
+session and a busy one. Absolute times are lower on the desktop and are reported
+in Section~\ref{sec:res:platform}; we would not want them quoted as headline
+figures, because we cannot promise a reader would reproduce them.
 \else
 Measurements were taken on \BenchHost{} running \BenchPlatform, with CPython
 \BenchPython, NumPy \BenchNumpy{} and Biopython \BenchBiopython. We report a
@@ -429,20 +438,25 @@ is the same on both machines.\fi}
 
 Absolute times depend strongly on the machine, so it is worth asking whether any
 conclusion does. Figure~\ref{fig:kmers}b repeats the comparison on both
-machines. Seqcore is $\PrimaryFasterLo$--$\PrimaryFasterHi\times$ faster on the
-\PrimaryMachine{} than on the \OtherCPU{} in absolute terms, but the sign of
-every comparison is identical: the same three operations win, the same two lose,
-and the $k$-mer dispatch crossover falls at the same $k$.
+machines. Seqcore runs $\OtherFasterLo$--$\OtherFasterHi\times$ faster on the
+\FasterMachine{} than on the dedicated instance in absolute terms --- a desktop
+part outperforming a cloud vCPU allocation, which is worth knowing if you are
+choosing where to run this kind of analysis --- but the sign of every comparison
+is identical: the same three operations win, the same two lose, and the $k$-mer
+dispatch crossover falls at the same $k$.
 
 The magnitudes do move, and in both directions. GC content is
-$\GCvsBio\times$ Biopython on the \PrimaryMachine{} against
-$\OtherGCvsBio\times$ on the \OtherCPU, because Apple silicon executes the
-vectorized reduction proportionally faster than it executes Biopython's
-per-object loop. $k$-mer counting goes the other way: its margin over pure
-Python is \emph{larger} on the server, whose interpreter is comparatively slower
-than its NumPy. The lesson is that a single-machine speedup figure should be
-read as one point estimate, not a property of the library --- which is why we
-report two machines and commit the harness that produced both.
+$\GCvsBio\times$ Biopython on the dedicated instance against
+$\OtherGCvsBio\times$ on the desktop, while translation goes the other way,
+$\TransVsBio\times$ against $\OtherTransVsBio\times$: the two machines do not
+merely scale by a constant, because the operations stress memory bandwidth and
+interpreter dispatch in different proportions. Pairwise alignment is
+$\AlignSlower\times$ slower than Biopython on one and $\OtherAlignSlower\times$
+on the other.
+
+The lesson is that a single-machine speedup figure should be read as one point
+estimate, not a property of the library --- which is why we report two machines
+and commit the harness that produced both.
 \fi
 
 \subsection{Beyond sequence operations}

@@ -1,0 +1,477 @@
+{
+  "timestamp": "2026-08-27T17:11:51.677071+00:00",
+  "kind": "domain-modules",
+  "platform": "Linux-6.17.0-1012-aws-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "metric": "best-of-N wall clock (seconds)",
+  "results": [
+    {
+      "module": "molecules",
+      "operation": "molecular_weight",
+      "size": 100,
+      "seqcore": 0.00010061300008601393,
+      "reference": 8.165099995949276e-05,
+      "reference_name": "RDKit",
+      "error": null,
+      "speedup": 0.8115352875840044
+    },
+    {
+      "module": "molecules",
+      "operation": "morgan_fingerprint",
+      "size": 100,
+      "seqcore": 0.005917060999991008,
+      "reference": 0.0011361669999132573,
+      "reference_name": "RDKit",
+      "error": null,
+      "speedup": 0.1920154279151396
+    },
+    {
+      "module": "molecules",
+      "operation": "tanimoto_similarity",
+      "size": 100,
+      "seqcore": 0.0031993759999977556,
+      "reference": 0.0017992429999367232,
+      "reference_name": "RDKit bulk",
+      "error": null,
+      "speedup": 0.5623731002351663
+    },
+    {
+      "module": "molecules",
+      "operation": "molecular_weight",
+      "size": 500,
+      "seqcore": 0.0006730660001039723,
+      "reference": 0.0005531729999574964,
+      "reference_name": "RDKit",
+      "error": null,
+      "speedup": 0.8218703661632657
+    },
+    {
+      "module": "molecules",
+      "operation": "morgan_fingerprint",
+      "size": 500,
+      "seqcore": 0.030153638999991017,
+      "reference": 0.005466131000048335,
+      "reference_name": "RDKit",
+      "error": null,
+      "speedup": 0.1812759979002854
+    },
+    {
+      "module": "molecules",
+      "operation": "tanimoto_similarity",
+      "size": 500,
+      "seqcore": 0.016663916999959838,
+      "reference": 0.03103728000007777,
+      "reference_name": "RDKit bulk",
+      "error": null,
+      "speedup": 1.8625440825318906
+    },
+    {
+      "module": "molecules",
+      "operation": "molecular_weight",
+      "size": 2000,
+      "seqcore": 0.002448908000019401,
+      "reference": 0.0020130280000785206,
+      "reference_name": "RDKit",
+      "error": null,
+      "speedup": 0.8220104634647659
+    },
+    {
+      "module": "molecules",
+      "operation": "morgan_fingerprint",
+      "size": 2000,
+      "seqcore": 0.11700392600005216,
+      "reference": 0.022561437000035767,
+      "reference_name": "RDKit",
+      "error": null,
+      "speedup": 0.19282632447757103
+    },
+    {
+      "module": "molecules",
+      "operation": "tanimoto_similarity",
+      "size": 2000,
+      "seqcore": 0.13755081399995106,
+      "reference": 0.5445553199999722,
+      "reference_name": "RDKit bulk",
+      "error": null,
+      "speedup": 3.958939276071212
+    },
+    {
+      "module": "structure",
+      "operation": "distance_matrix",
+      "size": 100,
+      "seqcore": 0.0010883460000741252,
+      "reference": 5.872199994882976e-05,
+      "reference_name": "scipy cdist",
+      "error": null,
+      "speedup": 0.05395526785124429
+    },
+    {
+      "module": "structure",
+      "operation": "find_contacts",
+      "size": 100,
+      "seqcore": 0.004790836000097443,
+      "reference": 0.00025684599995656754,
+      "reference_name": "scipy cKDTree",
+      "error": null,
+      "speedup": 0.05361193744710598
+    },
+    {
+      "module": "structure",
+      "operation": "sasa",
+      "size": 100,
+      "seqcore": 0.008153908000053889,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "structure",
+      "operation": "distance_matrix",
+      "size": 250,
+      "seqcore": 0.0036592289999362038,
+      "reference": 0.00020665499994265701,
+      "reference_name": "scipy cdist",
+      "error": null,
+      "speedup": 0.05647501152462989
+    },
+    {
+      "module": "structure",
+      "operation": "find_contacts",
+      "size": 250,
+      "seqcore": 0.011644021999927645,
+      "reference": 0.0005577730000823067,
+      "reference_name": "scipy cKDTree",
+      "error": null,
+      "speedup": 0.04790209088283865
+    },
+    {
+      "module": "structure",
+      "operation": "sasa",
+      "size": 250,
+      "seqcore": 0.0197566279999819,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "structure",
+      "operation": "distance_matrix",
+      "size": 500,
+      "seqcore": 0.010612977000050705,
+      "reference": 0.0007377179999821237,
+      "reference_name": "scipy cdist",
+      "error": null,
+      "speedup": 0.06951093929428087
+    },
+    {
+      "module": "structure",
+      "operation": "find_contacts",
+      "size": 500,
+      "seqcore": 0.0258870879999904,
+      "reference": 0.001341482999919208,
+      "reference_name": "scipy cKDTree",
+      "error": null,
+      "speedup": 0.0518205446637994
+    },
+    {
+      "module": "structure",
+      "operation": "sasa",
+      "size": 500,
+      "seqcore": 0.04185076500004925,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "structure",
+      "operation": "distance_matrix",
+      "size": 1000,
+      "seqcore": 0.03480671399995572,
+      "reference": 0.0028028579999954673,
+      "reference_name": "scipy cdist",
+      "error": null,
+      "speedup": 0.08052636051765855
+    },
+    {
+      "module": "structure",
+      "operation": "find_contacts",
+      "size": 1000,
+      "seqcore": 0.0929983240000638,
+      "reference": 0.004050088999974832,
+      "reference_name": "scipy cKDTree",
+      "error": null,
+      "speedup": 0.04355012892460356
+    },
+    {
+      "module": "structure",
+      "operation": "sasa",
+      "size": 1000,
+      "seqcore": 0.11012215999994623,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "neighbor_joining (identity, realigns)",
+      "size": 16,
+      "seqcore": 2.3500536420000344,
+      "reference": 0.005883503000063683,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 0.0025035611506537677
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "neighbor_joining (hamming, like-for-like)",
+      "size": 16,
+      "seqcore": 0.0018578550000256655,
+      "reference": 0.005883503000063683,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 3.1668257210505693
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "upgma (identity, realigns)",
+      "size": 16,
+      "seqcore": 2.3408640810000634,
+      "reference": 0.004565340999988621,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 0.0019502802563565404
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "upgma (hamming, like-for-like)",
+      "size": 16,
+      "seqcore": 0.0006234850000055303,
+      "reference": 0.004565340999988621,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 7.322294842615502
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "neighbor_joining (identity, realigns)",
+      "size": 32,
+      "seqcore": 9.079580231000023,
+      "reference": 0.030595445000017207,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 0.0033696981822525767
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "neighbor_joining (hamming, like-for-like)",
+      "size": 32,
+      "seqcore": 0.010884674999942945,
+      "reference": 0.030595445000017207,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 2.8108735447018476
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "upgma (identity, realigns)",
+      "size": 32,
+      "seqcore": 9.567716307999945,
+      "reference": 0.02018393200000901,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 0.0021095872149901047
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "upgma (hamming, like-for-like)",
+      "size": 32,
+      "seqcore": 0.002056405999951494,
+      "reference": 0.02018393200000901,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 9.815149343313092
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "neighbor_joining (identity, realigns)",
+      "size": 64,
+      "seqcore": 37.56358872499993,
+      "reference": 0.18431507900004362,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 0.004906748403338131
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "neighbor_joining (hamming, like-for-like)",
+      "size": 64,
+      "seqcore": 0.09983714699990287,
+      "reference": 0.18431507900004362,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 1.8461573125704698
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "upgma (identity, realigns)",
+      "size": 64,
+      "seqcore": 36.93911084499996,
+      "reference": 0.12226218399996469,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 0.0033098301827834595
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "upgma (hamming, like-for-like)",
+      "size": 64,
+      "seqcore": 0.013718735000111337,
+      "reference": 0.12226218399996469,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 8.912059603088219
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "neighbor_joining (identity, realigns)",
+      "size": 128,
+      "seqcore": 149.5543104059999,
+      "reference": 1.2439510240000118,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 0.008317720971217867
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "neighbor_joining (hamming, like-for-like)",
+      "size": 128,
+      "seqcore": 0.6219455409999455,
+      "reference": 1.2439510240000118,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 2.0000963782134757
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "upgma (identity, realigns)",
+      "size": 128,
+      "seqcore": 154.33084710299988,
+      "reference": 0.5880434169999944,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 0.003810277906448192
+    },
+    {
+      "module": "phylogenetics",
+      "operation": "upgma (hamming, like-for-like)",
+      "size": 128,
+      "seqcore": 0.07076702599988494,
+      "reference": 0.5880434169999944,
+      "reference_name": "Biopython",
+      "error": null,
+      "speedup": 8.309568032447068
+    },
+    {
+      "module": "population",
+      "operation": "allele_frequency",
+      "size": 100,
+      "seqcore": 0.0004264799999873503,
+      "reference": 0.0010678959999950166,
+      "reference_name": "NumPy ref",
+      "error": null,
+      "speedup": 2.503976739886258
+    },
+    {
+      "module": "population",
+      "operation": "allele_frequency",
+      "size": 500,
+      "seqcore": 0.0020283880000988574,
+      "reference": 0.005116530000123021,
+      "reference_name": "NumPy ref",
+      "error": null,
+      "speedup": 2.5224611858646653
+    },
+    {
+      "module": "population",
+      "operation": "allele_frequency",
+      "size": 2000,
+      "seqcore": 0.007998498000006293,
+      "reference": 0.020538463999855594,
+      "reference_name": "NumPy ref",
+      "error": null,
+      "speedup": 2.567790102571687
+    },
+    {
+      "module": "population",
+      "operation": "nucleotide_diversity",
+      "size": 20,
+      "seqcore": 0.005774225999857663,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "population",
+      "operation": "tajimas_d",
+      "size": 20,
+      "seqcore": 0.006705428000032043,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "population",
+      "operation": "nucleotide_diversity",
+      "size": 40,
+      "seqcore": 0.023123595000015484,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "population",
+      "operation": "tajimas_d",
+      "size": 40,
+      "seqcore": 0.023425321000104304,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "population",
+      "operation": "nucleotide_diversity",
+      "size": 80,
+      "seqcore": 0.09321658499993646,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "population",
+      "operation": "tajimas_d",
+      "size": 80,
+      "seqcore": 0.09256435799989049,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "population",
+      "operation": "nucleotide_diversity",
+      "size": 160,
+      "seqcore": 0.37114639500009616,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    },
+    {
+      "module": "population",
+      "operation": "tajimas_d",
+      "size": 160,
+      "seqcore": 0.3678713389999757,
+      "reference": null,
+      "reference_name": "",
+      "error": null
+    }
+  ]
+}

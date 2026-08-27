@@ -98,7 +98,13 @@ mpl.rcParams.update(
 # Which machine supplies the headline numbers (scaling figures, Table 1 and the
 # values quoted in the manuscript). The other measured machines appear in the
 # cross-platform panel. Set to a substring of the desired machine label.
-PRIMARY_MACHINE = "Mac mini"
+#
+# The dedicated cloud instance is used rather than the faster desktop because it
+# is the reproducible one: its Seqcore/Biopython ratios agree to within 2% across
+# runs made 14 hours apart, whereas the same ratios on a desktop that is also
+# being used for other work move by 35-52% with machine load. Absolute times on
+# the desktop are lower; they are reported in the cross-platform comparison.
+PRIMARY_MACHINE = "AWS"
 
 
 def machine_label(d: dict) -> str:
@@ -989,7 +995,12 @@ def write_numbers(rows: list[dict], d: dict, suites: dict, primary_label: str) -
     cores = d.get("cpu_count")
     core_note = f", {cores} cores" if cores else ""
     if system == "Linux":
-        host = f"an {hw} instance ({cpu}{core_note})" if hw else f"a Linux host ({cpu}{core_note})"
+        article = "an" if hw[:1].lower() in "aeioux" else "a"
+        host = (
+            f"{article} {hw} instance ({cpu}{core_note})"
+            if hw
+            else f"a Linux host ({cpu}{core_note})"
+        )
         os_label = f"Linux {kernel}".strip() + f", {machine}"
     elif system == "Darwin":
         host = f"a {hw} ({cpu}{core_note})" if hw else f"an Apple silicon Mac ({cpu}{core_note})"
@@ -1099,12 +1110,16 @@ def write_numbers(rows: list[dict], d: dict, suites: dict, primary_label: str) -
             2,
         )
         # How much faster the primary machine is, per operation.
+        # How much faster the other machine is than the primary, per operation.
+        # Emitted by direction so the manuscript never has to assume which of the
+        # two machines wins.
         ratios = []
         for op in ("gc_content", "translate", "reverse_complement"):
-            ratios.append(other["batch"][op]["seqcore"][-1] / batch[op]["seqcore"][-1])
-        ratios.append(other["align"]["seqcore"][-1] / align["seqcore"][-1])
-        defs["PrimaryFasterLo"] = texnum(min(ratios), 1)
-        defs["PrimaryFasterHi"] = texnum(max(ratios), 1)
+            ratios.append(batch[op]["seqcore"][-1] / other["batch"][op]["seqcore"][-1])
+        ratios.append(align["seqcore"][-1] / other["align"]["seqcore"][-1])
+        defs["OtherFasterLo"] = texnum(min(ratios), 1)
+        defs["OtherFasterHi"] = texnum(max(ratios), 1)
+        defs["FasterMachine"] = textesc(other_label if min(ratios) > 1 else primary_label)
         defs["NumMachines"] = str(1 + len(others))
 
     defs["PrimaryMachine"] = textesc(primary_label)

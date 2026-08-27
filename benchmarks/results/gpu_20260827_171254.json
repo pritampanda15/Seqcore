@@ -1,0 +1,259 @@
+{
+  "timestamp": "2026-08-27T17:12:54.132458+00:00",
+  "kind": "gpu-headroom",
+  "warning": "cupy_gpu_* columns are CuPy transcriptions of Seqcore's kernels, not Seqcore performance. Seqcore computes on the CPU.",
+  "gpu": {
+    "name": "NVIDIA A10G",
+    "compute_capability": "8.6",
+    "total_memory_gb": 23.68,
+    "cuda_runtime": 12090,
+    "cupy_version": "14.2.0"
+  },
+  "host": "Linux-6.17.0-1012-aws-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "metric": "best-of-N wall clock (seconds), stream-synchronized",
+  "seq_length": 1000,
+  "k": 8,
+  "results": [
+    {
+      "operation": "gc_content",
+      "n_sequences": 1000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.0007606079998367932,
+      "cupy_gpu_compute": 0.00012129300012020394,
+      "cupy_gpu_end2end": 0.00025126599985014764,
+      "headroom_compute": 6.270831779929711,
+      "headroom_end2end": 3.027102752821359
+    },
+    {
+      "operation": "reverse_complement",
+      "n_sequences": 1000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.0025626400001783622,
+      "cupy_gpu_compute": 3.915100000995153e-05,
+      "cupy_gpu_end2end": 0.0003119769999102573,
+      "headroom_compute": 65.45528848629618,
+      "headroom_end2end": 8.214195280150545
+    },
+    {
+      "operation": "translate",
+      "n_sequences": 1000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.002154629999949975,
+      "cupy_gpu_compute": 0.00015346299983320932,
+      "cupy_gpu_end2end": 0.0003322570000818814,
+      "headroom_compute": 14.040061788781182,
+      "headroom_end2end": 6.484829512753646
+    },
+    {
+      "operation": "count_kmers_k8",
+      "n_sequences": 1000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.044117078999988735,
+      "cupy_gpu_compute": 0.0011689780001233885,
+      "cupy_gpu_end2end": 0.0014979349998611724,
+      "headroom_compute": 37.739871062870364,
+      "headroom_end2end": 29.45193149507654
+    },
+    {
+      "operation": "gc_content",
+      "n_sequences": 5000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.0032499369999641203,
+      "cupy_gpu_compute": 0.00014415299983738805,
+      "cupy_gpu_end2end": 0.0007431070000620821,
+      "headroom_compute": 22.545052851000086,
+      "headroom_end2end": 4.373444200757909
+    },
+    {
+      "operation": "reverse_complement",
+      "n_sequences": 5000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.012482575000149154,
+      "cupy_gpu_compute": 7.195199987108936e-05,
+      "cupy_gpu_end2end": 0.001136155999802213,
+      "headroom_compute": 173.4847540375971,
+      "headroom_end2end": 10.986673487023063
+    },
+    {
+      "operation": "translate",
+      "n_sequences": 5000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.01939357900005234,
+      "cupy_gpu_compute": 0.0005965140001080727,
+      "cupy_gpu_end2end": 0.0014191530001426145,
+      "headroom_compute": 32.51152361308994,
+      "headroom_end2end": 13.665601241094814
+    },
+    {
+      "operation": "count_kmers_k8",
+      "n_sequences": 5000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.13491971000007652,
+      "cupy_gpu_compute": 0.00470207099988329,
+      "cupy_gpu_end2end": 0.005548850999957722,
+      "headroom_compute": 28.69367774400373,
+      "headroom_end2end": 24.31489149755589
+    },
+    {
+      "operation": "gc_content",
+      "n_sequences": 10000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.006649227000025348,
+      "cupy_gpu_compute": 0.0002500059999874793,
+      "cupy_gpu_end2end": 0.0019388849998449587,
+      "headroom_compute": 26.596269690960828,
+      "headroom_end2end": 3.4294076237409894
+    },
+    {
+      "operation": "reverse_complement",
+      "n_sequences": 10000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.02500057099996411,
+      "cupy_gpu_compute": 0.00011062199996558775,
+      "cupy_gpu_end2end": 0.0026249719999213994,
+      "headroom_compute": 225.9999910301864,
+      "headroom_end2end": 9.524128638596036
+    },
+    {
+      "operation": "translate",
+      "n_sequences": 10000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.037180728999828716,
+      "cupy_gpu_compute": 0.001147346999914589,
+      "cupy_gpu_end2end": 0.0032049760000063543,
+      "headroom_compute": 32.405827533079815,
+      "headroom_end2end": 11.60093835328408
+    },
+    {
+      "operation": "count_kmers_k8",
+      "n_sequences": 10000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.23868181300008473,
+      "cupy_gpu_compute": 0.00914238700011083,
+      "cupy_gpu_end2end": 0.01101930100003301,
+      "headroom_compute": 26.10716577598293,
+      "headroom_end2end": 21.660340615014483
+    },
+    {
+      "operation": "gc_content",
+      "n_sequences": 25000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.01676618600004076,
+      "cupy_gpu_compute": 0.0005679529999724764,
+      "cupy_gpu_end2end": 0.003974433999928806,
+      "headroom_compute": 29.520375807246847,
+      "headroom_end2end": 4.218509101004343
+    },
+    {
+      "operation": "reverse_complement",
+      "n_sequences": 25000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.06249791699997331,
+      "cupy_gpu_compute": 0.00022511500014843477,
+      "cupy_gpu_end2end": 0.005525519999991957,
+      "headroom_compute": 277.62662176560366,
+      "headroom_end2end": 11.310775637417708
+    },
+    {
+      "operation": "translate",
+      "n_sequences": 25000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.08937263300003906,
+      "cupy_gpu_compute": 0.002786556000046403,
+      "cupy_gpu_end2end": 0.006807390999938434,
+      "headroom_compute": 32.072792722827316,
+      "headroom_end2end": 13.1287644562869
+    },
+    {
+      "operation": "count_kmers_k8",
+      "n_sequences": 25000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.5458887470001628,
+      "cupy_gpu_compute": 0.022497213000178817,
+      "cupy_gpu_end2end": 0.025992344999849593,
+      "headroom_compute": 24.264727679638533,
+      "headroom_end2end": 21.001904483928694
+    },
+    {
+      "operation": "gc_content",
+      "n_sequences": 50000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.039657365000039135,
+      "cupy_gpu_compute": 0.0010942359999717155,
+      "cupy_gpu_end2end": 0.007685542999979589,
+      "headroom_compute": 36.24205838691491,
+      "headroom_end2end": 5.159995201398842
+    },
+    {
+      "operation": "reverse_complement",
+      "n_sequences": 50000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.12878580699998565,
+      "cupy_gpu_compute": 0.00041678000002320914,
+      "cupy_gpu_end2end": 0.015993901000001642,
+      "headroom_compute": 309.00188826914433,
+      "headroom_end2end": 8.052182328749717
+    },
+    {
+      "operation": "translate",
+      "n_sequences": 50000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.17476450200001636,
+      "cupy_gpu_compute": 0.0055106519998844306,
+      "cupy_gpu_end2end": 0.013378969000086727,
+      "headroom_compute": 31.713942742833613,
+      "headroom_end2end": 13.062628517853916
+    },
+    {
+      "operation": "count_kmers_k8",
+      "n_sequences": 50000,
+      "seq_length": 1000,
+      "seqcore_cpu": 1.0691789160000553,
+      "cupy_gpu_compute": 0.0447506059999796,
+      "cupy_gpu_end2end": 0.051505316999964634,
+      "headroom_compute": 23.891942737055736,
+      "headroom_end2end": 20.758612474917676
+    },
+    {
+      "operation": "gc_content",
+      "n_sequences": 100000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.07976465100000496,
+      "cupy_gpu_compute": 0.0021434929999486485,
+      "cupy_gpu_end2end": 0.015316756999936842,
+      "headroom_compute": 37.21246162311511,
+      "headroom_end2end": 5.207672289919717
+    },
+    {
+      "operation": "reverse_complement",
+      "n_sequences": 100000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.2642584870000064,
+      "cupy_gpu_compute": 0.0007994300001428201,
+      "cupy_gpu_end2end": 0.030582401999936337,
+      "headroom_compute": 330.55863171609275,
+      "headroom_end2end": 8.640867614013985
+    },
+    {
+      "operation": "translate",
+      "n_sequences": 100000,
+      "seq_length": 1000,
+      "seqcore_cpu": 0.35320633500009535,
+      "cupy_gpu_compute": 0.010967850000042745,
+      "cupy_gpu_end2end": 0.02663874500012753,
+      "headroom_compute": 32.20378971254337,
+      "headroom_end2end": 13.259120690498161
+    },
+    {
+      "operation": "count_kmers_k8",
+      "n_sequences": 100000,
+      "seq_length": 1000,
+      "seqcore_cpu": 2.101893336000103,
+      "cupy_gpu_compute": 0.08917346499993073,
+      "cupy_gpu_end2end": 0.1024246110000604,
+      "headroom_compute": 23.570838432730362,
+      "headroom_end2end": 20.52136996643183
+    }
+  ]
+}
