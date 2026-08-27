@@ -282,6 +282,101 @@ def test_molecule_caches_its_parsed_form():
     assert mol.to_rdkit() is mol.to_rdkit()
 
 
+def _scalar_contacts(structure, cutoff, include_neighbors=False):
+    """Return contacts by the nested-loop definition, kept as the reference."""
+    coords = structure.coordinates
+    atoms = structure.atoms
+    out = []
+    for i in range(len(coords)):
+        for j in range(i + 1, len(coords)):
+            dist = float(np.sqrt(np.sum((coords[i] - coords[j]) ** 2)))
+            if dist > cutoff:
+                continue
+            res_i, res_j = int(atoms[i]["residue_number"]), int(atoms[j]["residue_number"])
+            if (
+                not include_neighbors
+                and abs(res_i - res_j) <= 1
+                and atoms[i]["chain_id"] == atoms[j]["chain_id"]
+            ):
+                continue
+            out.append((i, j, dist))
+    return out
+
+
+@pytest.mark.parametrize("cutoff", [4.0, 6.0, 8.0, 12.0])
+@pytest.mark.parametrize("include_neighbors", [False, True])
+def test_find_contacts_matches_scalar_reference(cutoff, include_neighbors):
+    """Spatial-index contacts must equal the nested-loop result, in order."""
+    structure = sc.read("tests/data/test_protein.pdb")
+    got = sc.find_contacts(structure, cutoff=cutoff, include_neighbors=include_neighbors)
+    expected = _scalar_contacts(structure, cutoff, include_neighbors)
+
+    assert [(c.atom1_idx, c.atom2_idx) for c in got] == [(i, j) for i, j, _ in expected]
+    np.testing.assert_allclose([c.distance for c in got], [d for _, _, d in expected])
+
+
+def test_pairs_within_fallback_matches_spatial_index():
+    """The NumPy fallback must agree with the SciPy path exactly."""
+    import builtins
+
+    from seqcore.structure import _pairs_within
+
+    rng = np.random.default_rng(SEED)
+    points = rng.normal(0, 10, size=(120, 3))
+    with_scipy = _pairs_within(points, 5.0)
+
+    real_import = builtins.__import__
+
+    def no_scipy(name, *args, **kwargs):
+        if name.startswith("scipy"):
+            raise ImportError("scipy disabled for this test")
+        return real_import(name, *args, **kwargs)
+
+    builtins.__import__ = no_scipy
+    try:
+        without_scipy = _pairs_within(points, 5.0)
+    finally:
+        builtins.__import__ = real_import
+
+    np.testing.assert_array_equal(with_scipy[0], without_scipy[0])
+    np.testing.assert_array_equal(with_scipy[1], without_scipy[1])
+
+
+@pytest.mark.parametrize("fixture", ["test_protein.pdb", "test_structure.cif"])
+def test_sasa_matches_scalar_reference(fixture):
+    """Neighbour-list SASA must reproduce the all-pairs sphere sampling."""
+    structure = sc.read(f"tests/data/{fixture}")
+    coords = structure.coordinates
+    n_points = 100
+    vdw = {"C": 1.7, "N": 1.55, "O": 1.52, "S": 1.8, "H": 1.2}
+
+    idx = np.arange(0, n_points, dtype=float) + 0.5
+    phi = np.arccos(1 - 2 * idx / n_points)
+    theta = np.pi * (1 + 5**0.5) * idx
+    pts = np.column_stack([np.cos(theta) * np.sin(phi), np.sin(theta) * np.sin(phi), np.cos(phi)])
+
+    expected = np.zeros(len(coords))
+    for i in range(len(coords)):
+        element = str(structure._elements[i]).strip() or "C"
+        radius = vdw.get(element[0].upper(), 1.7) + 1.4
+        accessible = 0
+        for point in coords[i] + radius * pts:
+            for j in range(len(coords)):
+                if i == j:
+                    continue
+                elem_j = str(structure._elements[j]).strip() or "C"
+                if (
+                    np.sqrt(np.sum((point - coords[j]) ** 2))
+                    < vdw.get(elem_j[0].upper(), 1.7) + 1.4
+                ):
+                    break
+            else:
+                accessible += 1
+        expected[i] = (accessible / n_points) * 4 * np.pi * radius**2
+
+    np.testing.assert_array_equal(sc.sasa(structure), expected)
+
+
 def test_empty_and_degenerate_batches():
     """Degenerate inputs must not raise."""
     assert len(sc.DNAArray([])) == 0

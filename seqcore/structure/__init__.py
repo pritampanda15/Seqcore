@@ -89,41 +89,81 @@ def find_contacts(
         >>> contacts = sc.find_contacts(structure, cutoff=4.0)
 
     """
-    coords = structure.coordinates
-    n = len(coords)
-    contacts = []
-
+    coords = np.asarray(structure.coordinates, dtype=float)
     atoms = structure.atoms
+    if len(coords) == 0:
+        return []
 
-    for i in range(n):
-        for j in range(i + 1, n):
-            dist = np.sqrt(np.sum((coords[i] - coords[j]) ** 2))
+    pairs_i, pairs_j = _pairs_within(coords, cutoff)
+    if pairs_i.size == 0:
+        return []
 
-            if dist <= cutoff:
-                res_i = int(atoms[i]["residue_number"])
-                res_j = int(atoms[j]["residue_number"])
+    distances = np.sqrt(((coords[pairs_i] - coords[pairs_j]) ** 2).sum(axis=1))
 
-                # Skip sequential neighbors unless requested
-                if (
-                    not include_neighbors
-                    and abs(res_i - res_j) <= 1
-                    and atoms[i]["chain_id"] == atoms[j]["chain_id"]
-                ):
-                    continue
+    contacts = []
+    for i, j, dist in zip(pairs_i.tolist(), pairs_j.tolist(), distances.tolist()):
+        res_i = int(atoms[i]["residue_number"])
+        res_j = int(atoms[j]["residue_number"])
 
-                contacts.append(
-                    Contact(
-                        atom1_idx=i,
-                        atom2_idx=j,
-                        distance=dist,
-                        residue1=res_i,
-                        residue2=res_j,
-                        chain1=str(atoms[i]["chain_id"]),
-                        chain2=str(atoms[j]["chain_id"]),
-                    )
-                )
+        # Skip sequential neighbors unless requested
+        if (
+            not include_neighbors
+            and abs(res_i - res_j) <= 1
+            and atoms[i]["chain_id"] == atoms[j]["chain_id"]
+        ):
+            continue
+
+        contacts.append(
+            Contact(
+                atom1_idx=i,
+                atom2_idx=j,
+                distance=dist,
+                residue1=res_i,
+                residue2=res_j,
+                chain1=str(atoms[i]["chain_id"]),
+                chain2=str(atoms[j]["chain_id"]),
+            )
+        )
 
     return contacts
+
+
+def _pairs_within(
+    coords: np.ndarray, cutoff: float, block: int = 512
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return indices i < j of all point pairs no more than `cutoff` apart.
+
+    Pairs are returned in ascending (i, j) order, matching the order a nested
+    loop would produce. SciPy's spatial index is used when available because it
+    only examines nearby points; the fallback compares every pair but does so a
+    block of rows at a time, which is still far faster than looping in Python
+    and keeps peak memory to block x n.
+    """
+    n = len(coords)
+    try:
+        from scipy.spatial import cKDTree
+
+        pairs = cKDTree(coords).query_pairs(cutoff, output_type="ndarray")
+        if len(pairs) == 0:
+            return np.empty(0, dtype=np.intp), np.empty(0, dtype=np.intp)
+        lo = np.minimum(pairs[:, 0], pairs[:, 1])
+        hi = np.maximum(pairs[:, 0], pairs[:, 1])
+        order = np.lexsort((hi, lo))
+        return lo[order], hi[order]
+    except ImportError:
+        pass
+
+    idx_i, idx_j = [], []
+    for start in range(0, n, block):
+        stop = min(start + block, n)
+        d2 = ((coords[start:stop, None, :] - coords[None, :, :]) ** 2).sum(axis=2)
+        rows, cols = np.nonzero(d2 <= cutoff * cutoff)
+        rows = rows + start
+        keep = rows < cols
+        idx_i.append(rows[keep])
+        idx_j.append(cols[keep])
+
+    return np.concatenate(idx_i), np.concatenate(idx_j)
 
 
 def find_neighbors(
@@ -329,36 +369,61 @@ def sasa(
         ]
     )
 
+    # Radii were previously re-derived from the element string inside the
+    # innermost loop, i.e. O(n^2) string operations. Resolve them once.
+    radii = np.empty(n_atoms, dtype=float)
+    for i in range(n_atoms):
+        element = str(structure._elements[i]).strip() or "C"
+        radii[i] = vdw_radii.get(element[0].upper(), 1.7) + probe_radius
+
+    coords = np.asarray(coords, dtype=float)
     sasa = np.zeros(n_atoms)
+    if n_atoms == 0:
+        return sasa
+
+    # An atom can only occlude another's surface points if their inflated
+    # spheres overlap, so only that neighbourhood needs testing.
+    reach = radii + radii.max()
+    neighbours = _neighbour_lists(coords, reach)
 
     for i in range(n_atoms):
-        element = str(structure._elements[i]).strip()
-        if not element:
-            element = "C"  # Default
-        radius = vdw_radii.get(element[0].upper(), 1.7) + probe_radius
+        surface_points = coords[i] + radii[i] * points
 
-        # Generate surface points
-        surface_points = coords[i] + radius * points
-
-        # Count accessible points
-        accessible = 0
-        for sp in surface_points:
-            blocked = False
-            for j in range(n_atoms):
-                if i == j:
-                    continue
-                elem_j = str(structure._elements[j]).strip() or "C"
-                rad_j = vdw_radii.get(elem_j[0].upper(), 1.7) + probe_radius
-                if np.sqrt(np.sum((sp - coords[j]) ** 2)) < rad_j:
-                    blocked = True
-                    break
-            if not blocked:
-                accessible += 1
+        nb = neighbours[i]
+        if len(nb):
+            deltas = surface_points[:, None, :] - coords[nb][None, :, :]
+            blocked = ((deltas**2).sum(axis=2) < radii[nb][None, :] ** 2).any(axis=1)
+            accessible = int((~blocked).sum())
+        else:
+            accessible = n_points
 
         # Surface area = (accessible/total) * 4*pi*r^2
-        sasa[i] = (accessible / n_points) * 4 * np.pi * radius**2
+        sasa[i] = (accessible / n_points) * 4 * np.pi * radii[i] ** 2
 
     return sasa
+
+
+def _neighbour_lists(coords: np.ndarray, reach: np.ndarray) -> list[np.ndarray]:
+    """Return, for each atom, the other atoms within its own reach radius."""
+    n = len(coords)
+    try:
+        from scipy.spatial import cKDTree
+
+        tree = cKDTree(coords)
+        out = []
+        for i in range(n):
+            nb = np.asarray(tree.query_ball_point(coords[i], reach[i]), dtype=np.intp)
+            out.append(nb[nb != i])
+        return out
+    except ImportError:
+        pass
+
+    out = []
+    for i in range(n):
+        d2 = ((coords - coords[i]) ** 2).sum(axis=1)
+        nb = np.nonzero(d2 < reach[i] ** 2)[0]
+        out.append(nb[nb != i])
+    return out
 
 
 def surface_residues(
