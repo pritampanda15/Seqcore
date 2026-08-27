@@ -81,6 +81,15 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+Implementation notes
+--------------------
+
+The ``paper/`` directory of the repository contains a manuscript describing the
+array layout and the vectorization techniques Seqcore uses (batched ordinal
+encoding, masked reductions, table-driven translation, and an anti-diagonal
+wavefront formulation of pairwise dynamic programming), together with measured
+benchmarks and the cases where Seqcore is not the fastest option.
+
 Citation
 --------
 

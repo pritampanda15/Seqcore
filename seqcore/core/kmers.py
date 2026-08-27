@@ -65,11 +65,12 @@ def count_kmers(
         >>> kmer_counts = sc.count_kmers(sequences, k=21)
 
     """
-    all_kmers = []
-    for kmer_list in extract_kmers(sequences, k):
-        all_kmers.extend(kmer_list)
-
-    counts = Counter(all_kmers)
+    counts = _count_kmers_encoded(sequences, k)
+    if counts is None:
+        all_kmers = []
+        for kmer_list in extract_kmers(sequences, k):
+            all_kmers.extend(kmer_list)
+        counts = Counter(all_kmers)
 
     if normalize:
         total = sum(counts.values())
@@ -78,6 +79,75 @@ def count_kmers(
         return {}
 
     return dict(counts)
+
+
+# Largest k for which a base-5 k-mer code still fits in a signed 64-bit int.
+_MAX_ENCODED_K = 26
+
+
+def _count_kmers_encoded(sequences, k: int):
+    """Count k-mers directly on the encoded matrix, or return None if ineligible.
+
+    Each k-mer is folded into a base-5 integer (the alphabet is A, C, G, T/U, N)
+    by a rolling accumulation over k columns, so counting becomes a single
+    ``np.unique`` over integers. Only the *distinct* k-mers are ever turned back
+    into Python strings, instead of one string per occurrence.
+
+    This only pays off when k-mers actually collapse onto each other. Once the
+    number of possible k-mers (4^k) exceeds the number of windows in the input,
+    almost every k-mer is unique, the integer sort dominates, and Python's own
+    ``Counter`` over strings is faster -- so the caller is sent down that path
+    instead.
+    """
+    from seqcore.core.arrays import BioArray
+
+    if not isinstance(sequences, BioArray) or k < 1 or k > _MAX_ENCODED_K:
+        return None
+
+    data = sequences.encoded
+    if data.ndim != 2:
+        return None
+
+    lengths = np.asarray(sequences.lengths, dtype=np.int64)
+    width = data.shape[-1]
+    n_windows = width - k + 1
+    if n_windows <= 0 or lengths.size == 0:
+        return Counter()
+
+    total_windows = int(np.maximum(lengths - k + 1, 0).sum())
+    if total_windows and 4**k > total_windows:
+        return None
+
+    # Rolling base-5 accumulation: k passes over an (n, n_windows) block.
+    codes = data[:, :n_windows].astype(np.int64)
+    for offset in range(1, k):
+        codes *= 5
+        codes += data[:, offset : offset + n_windows]
+
+    per_seq = np.maximum(lengths - k + 1, 0)
+    if int(per_seq.min()) == n_windows:
+        flat = codes.ravel()
+    else:
+        flat = codes[np.arange(n_windows) < per_seq[:, None]]
+
+    if flat.size == 0:
+        return Counter()
+
+    uniq, freq = np.unique(flat, return_counts=True)
+    return Counter(dict(zip(_decode_kmer_codes(uniq, k, sequences), freq.tolist())))
+
+
+def _decode_kmer_codes(codes: np.ndarray, k: int, sequences) -> list[str]:
+    """Turn base-5 k-mer codes back into strings, vectorized over all codes."""
+    digits = np.empty((codes.size, k), dtype=np.uint8)
+    remaining = codes.astype(np.int64)
+    for position in range(k - 1, -1, -1):
+        digits[:, position] = (remaining % 5).astype(np.uint8)
+        remaining //= 5
+
+    chars = sequences._decode_table[digits]
+    raw = chars.tobytes().decode("ascii")
+    return [raw[i : i + k] for i in range(0, len(raw), k)]
 
 
 def kmer_spectrum(

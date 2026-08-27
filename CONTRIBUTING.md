@@ -4,8 +4,8 @@
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/seqcore/seqcore.git
-cd seqcore
+git clone https://github.com/pritampanda15/Seqcore.git
+cd Seqcore
 ```
 
 2. Create a virtual environment:
@@ -36,14 +36,23 @@ pytest --cov=seqcore --cov-report=html
 
 We use:
 - **Black** for formatting
+- **isort** for import ordering
 - **Ruff** for linting
 - **MyPy** for type checking
 
-Run all checks:
+Run all checks (CI enforces the first three):
 ```bash
-black seqcore tests
-ruff check seqcore tests
-mypy seqcore
+black --check seqcore/
+isort --check-only seqcore/
+ruff check .
+mypy seqcore/ --ignore-missing-imports
+```
+
+To apply the formatting fixes rather than just checking:
+```bash
+black seqcore/
+isort seqcore/
+ruff check . --fix
 ```
 
 ## Pull Request Process
@@ -69,3 +78,22 @@ mypy seqcore
 2. Add exports to `__init__.py`
 3. Write tests
 4. Update README if needed
+5. Add an entry under `## [Unreleased]` in `CHANGELOG.md`
+
+## Documentation
+
+The Sphinx site lives in `docs/`. Build it locally with:
+
+```bash
+pip install -e ".[docs]"
+sphinx-build -b html -W --keep-going docs docs/_build/html
+```
+
+CI builds the docs with `-W`, so any Sphinx warning fails the build. If you add
+a new module, add a corresponding page under `docs/api/`.
+
+## Performance Claims
+
+Any performance number quoted in the README or docs must be reproducible with
+the scripts in `benchmarks/`. Report measurements as observed, including cases
+where Seqcore is slower than the comparison library.

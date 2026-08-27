@@ -8,26 +8,35 @@ from __future__ import annotations
 import gzip
 import os
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 if TYPE_CHECKING:
-    from seqcore.core.arrays import BioArray, DNAArray, ProteinArray, RNAArray
+    from seqcore.core.arrays import BioArray, DNAArray
     from seqcore.core.structure import StructureArray
 
 
-def _safe_urlopen(url: str, allowed_schemes: tuple = ("https",)):
+#: Default timeout (seconds) for network requests made by :func:`fetch`.
+DEFAULT_FETCH_TIMEOUT = 30.0
+
+
+def _safe_urlopen(
+    url: str,
+    allowed_schemes: tuple = ("https",),
+    timeout: float = DEFAULT_FETCH_TIMEOUT,
+):
     """Safely open a URL after validating the scheme.
 
     This function validates that the URL uses an allowed scheme (default: https only)
-    to prevent potential security issues with file:// or other schemes.
+    to prevent potential security issues with file:// or other schemes. A timeout is
+    always applied so a stalled server cannot hang the caller indefinitely.
     """
     import urllib.request
 
     parsed = urlparse(url)
     if parsed.scheme not in allowed_schemes:
         raise ValueError(f"URL scheme '{parsed.scheme}' not allowed. Allowed: {allowed_schemes}")
-    return urllib.request.urlopen(url)  # nosec B310 - scheme validated above
+    return urllib.request.urlopen(url, timeout=timeout)  # nosec B310 - scheme validated above
 
 
 def _detect_format(filepath: str) -> str:
@@ -1156,12 +1165,17 @@ def write(data: Any, filepath: str, format: str | None = None, append: bool = Fa
         raise ValueError(f"Write not supported for format: {format}")
 
 
-def fetch(identifier: str, database: str | None = None) -> Any:
+def fetch(
+    identifier: str,
+    database: str | None = None,
+    timeout: float = DEFAULT_FETCH_TIMEOUT,
+) -> Any:
     """Fetch data from online database.
 
     Args:
         identifier: Sequence/structure identifier.
         database: Database name (auto-detected if not specified).
+        timeout: Per-request network timeout in seconds.
 
     Returns:
         Fetched data (sequence or structure).
@@ -1172,7 +1186,6 @@ def fetch(identifier: str, database: str | None = None) -> Any:
 
     """
     import tempfile
-    import urllib.request
 
     # Auto-detect database
     if database is None:
@@ -1187,7 +1200,7 @@ def fetch(identifier: str, database: str | None = None) -> Any:
 
     if database == "pdb":
         url = f"https://files.rcsb.org/download/{identifier.upper()}.pdb"
-        with _safe_urlopen(url) as response:
+        with _safe_urlopen(url, timeout=timeout) as response:
             content = response.read().decode("utf-8")
         with tempfile.NamedTemporaryFile(mode="w", suffix=".pdb", delete=False) as f:
             f.write(content)
@@ -1200,7 +1213,7 @@ def fetch(identifier: str, database: str | None = None) -> Any:
 
     elif database == "uniprot":
         url = f"https://rest.uniprot.org/uniprotkb/{identifier}.fasta"
-        with _safe_urlopen(url) as response:
+        with _safe_urlopen(url, timeout=timeout) as response:
             content = response.read().decode("utf-8")
         with tempfile.NamedTemporaryFile(mode="w", suffix=".fasta", delete=False) as f:
             f.write(content)
@@ -1216,7 +1229,7 @@ def fetch(identifier: str, database: str | None = None) -> Any:
         from seqcore.core.arrays import ProteinArray
 
         url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&id={identifier}&rettype=fasta&retmode=text"
-        with _safe_urlopen(url) as response:
+        with _safe_urlopen(url, timeout=timeout) as response:
             content = response.read().decode("utf-8")
         lines = content.strip().split("\n")
         if lines:

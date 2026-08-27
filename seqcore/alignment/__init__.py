@@ -7,14 +7,13 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 if TYPE_CHECKING:
     from seqcore.core.arrays import BioArray
 
-from seqcore.core.device import get_array_module
 
 # Default scoring matrices
 DNA_MATCH = 2
@@ -65,6 +64,53 @@ class AlignmentResult:
         return f"AlignmentResult(score={self.score:.1f}, identity={self.identity:.1%})"
 
 
+def _dp_fill(
+    seq1: str,
+    seq2: str,
+    match: int,
+    mismatch: int,
+    gap: int,
+    local: bool,
+) -> np.ndarray:
+    """Fill a Needleman-Wunsch / Smith-Waterman score matrix by anti-diagonals.
+
+    Every cell (i, j) depends only on (i-1, j-1), (i-1, j) and (i, j-1), all of
+    which lie on earlier anti-diagonals d = i + j. Cells sharing a diagonal are
+    therefore mutually independent and can be evaluated in one NumPy operation.
+    This reduces the Python-level iteration count from O(m*n) to O(m+n) while
+    producing a score matrix identical to the scalar recurrence.
+    """
+    m, n = len(seq1), len(seq2)
+    score = np.zeros((m + 1, n + 1), dtype=np.float32)
+
+    if not local:
+        score[0, :] = np.arange(n + 1, dtype=np.float32) * gap
+        score[:, 0] = np.arange(m + 1, dtype=np.float32) * gap
+
+    if m == 0 or n == 0:
+        return score
+
+    a = np.frombuffer(seq1.encode("ascii", "replace"), dtype=np.uint8)
+    b = np.frombuffer(seq2.encode("ascii", "replace"), dtype=np.uint8)
+
+    for d in range(2, m + n + 1):
+        i = np.arange(max(1, d - n), min(m, d - 1) + 1, dtype=np.intp)
+        if i.size == 0:
+            continue
+        j = d - i
+
+        sub = np.where(a[i - 1] == b[j - 1], match, mismatch).astype(np.float32, copy=False)
+        best = np.maximum(
+            score[i - 1, j - 1] + sub,
+            np.maximum(score[i - 1, j] + gap, score[i, j - 1] + gap),
+        )
+        if local:
+            np.maximum(best, 0.0, out=best)
+        score[i, j] = best
+
+    return score
+
+
 def _needleman_wunsch(
     seq1: str,
     seq2: str,
@@ -75,20 +121,7 @@ def _needleman_wunsch(
     """Needleman-Wunsch global alignment."""
     m, n = len(seq1), len(seq2)
 
-    # Initialize score matrix
-    score = np.zeros((m + 1, n + 1), dtype=np.float32)
-    score[0, :] = np.arange(n + 1) * gap
-    score[:, 0] = np.arange(m + 1) * gap
-
-    # Fill score matrix
-    for i in range(1, m + 1):
-        for j in range(1, n + 1):
-            match_score = match if seq1[i - 1] == seq2[j - 1] else mismatch
-            score[i, j] = max(
-                score[i - 1, j - 1] + match_score,
-                score[i - 1, j] + gap,
-                score[i, j - 1] + gap,
-            )
+    score = _dp_fill(seq1, seq2, match, mismatch, gap, local=False)
 
     # Traceback
     aligned1, aligned2 = [], []
@@ -145,28 +178,15 @@ def _smith_waterman(
     gap: int = -2,
 ) -> AlignmentResult:
     """Smith-Waterman local alignment."""
-    m, n = len(seq1), len(seq2)
+    n = len(seq2)
 
-    # Initialize score matrix
-    score = np.zeros((m + 1, n + 1), dtype=np.float32)
+    score = _dp_fill(seq1, seq2, match, mismatch, gap, local=True)
 
-    # Track max score position
-    max_score = 0
-    max_i, max_j = 0, 0
-
-    # Fill score matrix
-    for i in range(1, m + 1):
-        for j in range(1, n + 1):
-            match_score = match if seq1[i - 1] == seq2[j - 1] else mismatch
-            score[i, j] = max(
-                0,
-                score[i - 1, j - 1] + match_score,
-                score[i - 1, j] + gap,
-                score[i, j - 1] + gap,
-            )
-            if score[i, j] > max_score:
-                max_score = score[i, j]
-                max_i, max_j = i, j
+    # First cell attaining the maximum in row-major order, matching the
+    # tie-breaking of the original scalar scan.
+    flat = int(np.argmax(score))
+    max_i, max_j = divmod(flat, n + 1)
+    max_score = float(score[max_i, max_j])
 
     # Traceback from max score
     aligned1, aligned2 = [], []
@@ -262,11 +282,17 @@ def align(
         method: Alignment method ("global" for Needleman-Wunsch, "local" for Smith-Waterman).
         match: Match score.
         mismatch: Mismatch penalty.
-        gap_open: Gap opening penalty.
-        gap_extend: Gap extension penalty.
+        gap_open: Gap penalty. Applied to every gap position, opening or not.
+        gap_extend: Accepted for forward compatibility but **currently unused**.
+            The implementation scores gaps linearly with `gap_open`; affine gap
+            penalties are not yet supported, so passing this has no effect.
 
     Returns:
         AlignmentResult or list of results.
+
+    Note:
+        Scoring is linear-gap Needleman-Wunsch (or Smith-Waterman for
+        `method="local"`). For affine gap penalties use a dedicated aligner.
 
     Example:
         >>> result = sc.align(query, reference)

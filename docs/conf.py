@@ -7,9 +7,10 @@ sys.path.insert(0, os.path.abspath(".."))
 
 # Project information
 project = "Seqcore"
-copyright = "2024, Dr. Pritam Kumar Panda"
+copyright = "2025, Dr. Pritam Kumar Panda"
 author = "Dr. Pritam Kumar Panda"
-release = "0.3.0"
+release = "0.4.0"
+version = "0.4"
 
 # Extensions
 extensions = [

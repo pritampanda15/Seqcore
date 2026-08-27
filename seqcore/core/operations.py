@@ -146,6 +146,18 @@ for i in range(125):
 _AA_DECODE_TABLE = np.array([ord(c) for c in _AA_CHARS], dtype=np.uint8)
 
 
+def _length_mask(lengths: np.ndarray, width: int) -> np.ndarray:
+    """Boolean mask selecting the real (non-padding) positions of each row.
+
+    Returns ``None`` when every row is full width, letting callers skip the
+    masking work entirely for uniform-length batches.
+    """
+    lengths = np.asarray(lengths)
+    if lengths.size == 0 or int(lengths.min()) == width:
+        return None
+    return np.arange(width) < lengths[:, None]
+
+
 def gc_content(sequences: BioArray | str | list[str]) -> np.ndarray:
     """Calculate GC content for sequence(s) using vectorized operations.
 
@@ -168,18 +180,18 @@ def gc_content(sequences: BioArray | str | list[str]) -> np.ndarray:
         data = sequences.encoded
         lengths = sequences.lengths
 
-        # G=2, C=1 -> count where value is 1 or 2
+        # G=2, C=1 -> count where value is 1 or 2, in a single 2-D reduction.
         gc_mask = (data == 1) | (data == 2)
 
-        # Sum GC bases for each sequence, considering actual length
-        n_seqs = len(sequences)
-        results = np.zeros(n_seqs, dtype=np.float32)
+        valid = _length_mask(lengths, data.shape[-1])
+        if valid is not None:
+            gc_mask &= valid
 
-        for i in range(n_seqs):
-            gc_count = np.sum(gc_mask[i, : lengths[i]])
-            results[i] = (gc_count / lengths[i] * 100) if lengths[i] > 0 else 0.0
-
-        return results
+        gc_counts = gc_mask.sum(axis=-1, dtype=np.int64)
+        lengths = np.asarray(lengths)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            results = np.where(lengths > 0, gc_counts / lengths * 100.0, 0.0)
+        return results.astype(np.float32, copy=False)
 
     # Fallback for string input - still optimized
     seq_list = [sequences] if isinstance(sequences, str) else sequences
@@ -367,16 +379,25 @@ def reverse_complement(
         return "".join(comp_map.get(c.upper(), c) for c in sequences[::-1])
 
     elif isinstance(sequences, BioArray):
-        # Vectorized reverse complement
-        # First complement, then reverse
-        comp_data = comp_table[sequences.encoded]
+        # Vectorized reverse complement. The reversal is expressed as a view or
+        # a single gather, and the complement table is applied to that result in
+        # one pass, so the whole batch is touched once rather than twice.
+        encoded = sequences.encoded
+        width = encoded.shape[-1]
+        lengths = np.asarray(sequences.lengths)
 
-        # Reverse along sequence axis
-        n_seqs = len(sequences)
-
-        for i in range(n_seqs):
-            length = sequences.lengths[i]
-            comp_data[i, :length] = comp_data[i, :length][::-1]
+        if lengths.size == 0:
+            comp_data = comp_table[encoded]
+        elif int(lengths.min()) == width:
+            # Uniform lengths: a plain reversed view is exact.
+            comp_data = comp_table[encoded[:, ::-1]]
+        else:
+            # Ragged: position j of row i maps to length_i - 1 - j while j is
+            # inside the sequence, and stays put in the padding region.
+            cols = np.arange(width)
+            src = lengths[:, None] - 1 - cols
+            np.copyto(src, cols, where=src < 0)
+            comp_data = comp_table[np.take_along_axis(encoded, src, axis=1)]
 
         if isinstance(sequences, RNAArray) or seq_type == "rna":
             return RNAArray.from_numpy(comp_data, sequences.lengths)
@@ -461,10 +482,63 @@ def translate(
     if isinstance(sequences, str):
         return _translate_fast(sequences)
     elif isinstance(sequences, BioArray):
+        # Fast path: translate directly on the encoded matrix. The nucleotide
+        # encoding (A=0, C=1, G=2, T/U=3, N=4) indexes _CODON_TO_AA directly,
+        # and its output values are already valid ProteinArray codes, so no
+        # sequence is ever materialised as a Python string.
+        if stop_symbol == "*":
+            result = _translate_encoded(sequences, frame, to_stop)
+            if result is not None:
+                return result
         proteins = [_translate_fast(seq) for seq in sequences.sequences]
         return ProteinArray(proteins, ids=sequences.ids)
     else:
         return [_translate_fast(seq) for seq in sequences]
+
+
+def _translate_encoded(sequences: BioArray, frame: int, to_stop: bool):
+    """Vectorized translation over an encoded nucleotide matrix.
+
+    Returns None if the array layout is not eligible for the fast path, in
+    which case the caller falls back to per-sequence translation.
+    """
+    data = sequences.encoded
+    if data.ndim != 2:
+        return None
+
+    lengths = np.asarray(sequences.lengths, dtype=np.int64)
+    n_seqs = data.shape[0]
+    n_codons = np.maximum((lengths - frame) // 3, 0)
+    max_codons = int(n_codons.max()) if n_codons.size else 0
+
+    if max_codons == 0:
+        empty = np.zeros((n_seqs, 0), dtype=np.uint8)
+        return _protein_from_codes(empty, np.zeros(n_seqs, dtype=np.int64), sequences.ids)
+
+    stop = data[:, frame : frame + 3 * max_codons]
+    codons = stop.reshape(n_seqs, max_codons, 3).astype(np.int64, copy=False)
+
+    # codon_idx = b1*25 + b2*5 + b3 over the 5-letter alphabet (N included).
+    idx = codons[:, :, 0] * 25 + codons[:, :, 1] * 5 + codons[:, :, 2]
+    aa = _CODON_TO_AA[idx]
+
+    if to_stop:
+        within = np.arange(max_codons) < n_codons[:, None]
+        is_stop = (aa == _AA_TO_IDX["*"]) & within
+        first_stop = np.where(is_stop.any(axis=1), is_stop.argmax(axis=1), n_codons)
+        n_codons = np.minimum(n_codons, first_stop)
+
+    return _protein_from_codes(aa, n_codons, sequences.ids)
+
+
+def _protein_from_codes(codes: np.ndarray, lengths: np.ndarray, ids) -> ProteinArray:
+    """Build a ProteinArray from already-encoded amino acid codes."""
+    from seqcore.core.arrays import ProteinArray
+
+    protein = ProteinArray.from_numpy(np.ascontiguousarray(codes, dtype=np.uint8), lengths)
+    if ids is not None:
+        protein._ids = list(ids)
+    return protein
 
 
 def extract_codons(sequences: BioArray | str | list[str], frame: int = 0) -> list[list[str]]:

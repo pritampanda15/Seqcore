@@ -7,7 +7,13 @@
 
 High-performance biological sequence analysis library for Python.
 
-A unified, GPU-accelerated library for genomics, proteomics, structural biology, and drug design.
+A unified, NumPy-vectorized library for genomics, proteomics, structural biology, and drug design.
+
+> **Note on GPU support:** Seqcore ships CuPy device-management utilities
+> (`gpu_available`, `gpu_info`, `device`, `set_memory_limit`, `clear_gpu_cache`),
+> but the analysis kernels themselves still execute on NumPy. GPU dispatch for
+> the compute functions is planned, not implemented -- see
+> [Roadmap](#roadmap).
 
 ## Installation
 
@@ -178,22 +184,25 @@ d = sc.tajimas_d(sequences)
 ld = sc.linkage_disequilibrium(variants)
 ```
 
-### GPU Acceleration
+### GPU Utilities
+
+These manage CuPy devices and memory. They do **not** move Seqcore's analysis
+functions onto the GPU -- those run on NumPy today.
 
 ```python
 # Check GPU availability
 if sc.gpu_available():
     print(sc.gpu_info())
 
-# Device context
+# Select the active CuPy device for your own CuPy code
 with sc.device("cuda:0"):
-    result = sc.align(sequences, reference)
+    xp = sc.core.device.get_array_module()  # cupy when a GPU is active
 
 # Memory management
 sc.set_memory_limit("8GB")
 sc.clear_gpu_cache()
 
-# Timing
+# Timing (works on any code)
 with sc.timer() as t:
     result = sc.align(sequences, reference)
 print(f"Completed in {t.elapsed:.2f}s")
@@ -221,27 +230,83 @@ sc_mol = sc.Molecule.from_rdkit(rdkit_mol)
 
 ## Performance
 
-Seqcore provides significant speedups over traditional libraries:
+Seqcore stores a batch of sequences as one padded integer matrix, so batch-wide
+operations are single NumPy calls rather than per-sequence loops. That wins
+decisively where work amortizes across the batch, and loses where a compiled
+per-element implementation already exists. Both cases are reported below.
 
-| Operation | Biopython | Seqcore | Speedup |
-|-----------|-----------|---------|---------|
-| GC Content (1M seqs) | 45s | 0.8s | 56x |
-| Reverse Complement | 12s | 0.1s | 120x |
-| Translation | 38s | 0.5s | 76x |
-| K-mer Counting | 89s | 1.2s | 74x |
+100,000 sequences x 1000 bp. `Speedup` is Seqcore vs the **faster** of Biopython
+and idiomatic pure Python; values below 1.0 mean Seqcore is slower.
 
-*Benchmarks on AMD Ryzen 9 5900X, 32GB RAM. GPU benchmarks show additional 10-50x speedup.*
+| Operation | Mac mini (M4 Pro) | AWS g5.2xlarge (EPYC 7R32) |
+|-----------|------------------:|---------------------------:|
+| GC content | **16.2x** | **6.4x** |
+| Translation | **27.9x** | **18.1x** |
+| k-mer counting (k=8, 2000 seqs) | **4.4x** | **9.2x** |
+| k-mer counting (k=12) | 1.7x | 1.4x |
+| Reverse complement | 0.94x | 0.88x |
+| Global alignment (L=3200) | 0.07x | 0.03x |
+
+*Both machines run Python 3.12, NumPy 2.5.2, Biopython 1.88; best of 5 runs,
+each implementation in a fresh subprocess. Raw results in `benchmarks/results/`.*
+
+Every conclusion holds on both machines — the same operations win and lose, in
+the same order — but absolute times differ by 2.4–4.5x, so treat any single
+speedup figure as a point estimate.
+
+Reproduce with:
+
+```bash
+python benchmarks/benchmark_suite.py
+```
+
+### When to use something else
+
+- **Pairwise alignment** is a NumPy anti-diagonal wavefront. Far faster than a
+  scalar Python loop, but still 15–29x slower than Biopython's C aligner. For
+  alignment-bound work, use a dedicated aligner.
+- **Reverse complement** is memory-bandwidth bound and sits at rough parity with
+  Biopython's `str.translate`. No vectorization advantage is available.
+- **k-mer counting** switches to a `Counter` over strings once `4**k` exceeds the
+  number of windows, because past that point almost every k-mer is unique.
+- **GPU**: not used by any compute path. See below.
+
+### GPU
+
+Seqcore ships CuPy device-management helpers but **does not compute on the GPU**.
+`benchmarks/benchmark_gpu.py` measures what a GPU backend would be worth by
+timing CuPy transcriptions of Seqcore's kernels (NVIDIA A10G):
+
+| | Data resident on device | Per call, incl. host transfer |
+|---|---|---|
+| Reverse complement | 326x | **8.5x** |
+| GC content | 36x | **5.1x** |
+| Translation | 32x | **13.3x** |
+| k-mers (k=8) | 23x | **20.4x** |
+
+PCIe transfer, not arithmetic, decides the outcome — for reverse complement it is
+97% of per-call time. A GPU backend is only worth building if the encoded matrix
+stays resident on the device across many operations.
 
 ## Requirements
 
 - Python 3.9+
-- NumPy 1.21+
+- NumPy 1.22+
 
 Optional:
 - CuPy (GPU acceleration)
 - Biopython (interoperability)
 - RDKit (molecular operations)
 - MDAnalysis (structure analysis)
+
+## Roadmap
+
+- GPU dispatch for the core kernels (`gc_content`, `translate`,
+  `reverse_complement`, k-mer counting) via CuPy, wired through
+  `get_array_module`.
+- Compiled pairwise alignment kernel to replace the current pure-NumPy
+  dynamic programming implementation.
+- Published API reference on Read the Docs.
 
 ## Contributing
 
@@ -266,8 +331,8 @@ If you use Seqcore in your research, please cite:
   author = {Panda, Pritam Kumar},
   title = {Seqcore: High-performance biological sequence analysis},
   url = {https://github.com/pritampanda15/seqcore},
-  version = {0.3.0},
-  year = {2025},
+  version = {0.4.0},
+  year = {2026},
   institution = {Stanford University}
 }
 ```

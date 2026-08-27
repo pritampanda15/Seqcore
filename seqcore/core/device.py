@@ -74,14 +74,22 @@ def gpu_info() -> dict[str, Any]:
 
 @contextmanager
 def device(device_name: str):
-    """Context manager for setting computation device.
+    """Context manager for selecting the active CuPy device.
+
+    .. note::
+       This sets the device that :func:`get_array_module` reports and that CuPy
+       allocates on. Seqcore's analysis functions (``align``, ``gc_content``,
+       ``translate``, ...) currently run on NumPy regardless of this setting --
+       GPU dispatch for those kernels is not implemented yet. Use this context
+       manager for CuPy code you write yourself against
+       :func:`get_array_module`.
 
     Args:
         device_name: Device to use ("cpu", "cuda", "cuda:0", "cuda:1", etc.)
 
     Example:
         >>> with sc.device("cuda:0"):
-        ...     result = sc.align(sequences, reference)
+        ...     xp = sc.core.device.get_array_module()  # cupy when available
 
     """
     global _current_device

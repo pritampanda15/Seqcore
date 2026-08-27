@@ -175,3 +175,11 @@ tmp/
 temp/
 *.tmp
 *.bak
+
+# LaTeX build artifacts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.synctex.gz

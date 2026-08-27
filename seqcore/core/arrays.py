@@ -116,23 +116,39 @@ class BioArray(ABC):
         return encoded.reshape(1, -1), np.array([len(sequence)])
 
     def _encode_batch_fast(self, sequences: list[str]) -> tuple[np.ndarray, np.ndarray]:
-        """Encode multiple sequences with vectorized operations."""
-        if not sequences:
-            return np.array([], dtype=self._dtype).reshape(0, 0), np.array([])
+        """Encode multiple sequences with a single vectorized table lookup.
 
-        lengths = np.array([len(s) for s in sequences])
-        max_len = lengths.max()
+        The batch is concatenated into one buffer so that the ASCII->code
+        translation is a single NumPy gather over all residues, rather than one
+        gather per sequence. Ragged batches are then scattered into the padded
+        matrix using precomputed row/column indices, keeping the whole routine
+        free of per-sequence Python work.
+        """
         n_seqs = len(sequences)
+        if n_seqs == 0:
+            return np.array([], dtype=self._dtype).reshape(0, 0), np.array([], dtype=np.int64)
 
-        # Pre-allocate array
+        lengths = np.fromiter(map(len, sequences), dtype=np.int64, count=n_seqs)
+        max_len = int(lengths.max())
+
+        if max_len == 0:
+            return np.zeros((n_seqs, 0), dtype=self._dtype), lengths
+
+        # One concatenation + one table lookup for the entire batch.
+        flat = self._encode_table[
+            np.frombuffer("".join(sequences).encode("ascii"), dtype=np.uint8)
+        ].astype(self._dtype, copy=False)
+
+        # Uniform-length batches (the common case) need no scatter at all.
+        if int(lengths.min()) == max_len:
+            return flat.reshape(n_seqs, max_len), lengths
+
         encoded = np.zeros((n_seqs, max_len), dtype=self._dtype)
-
-        # Vectorized encoding using lookup table
-        for i, seq in enumerate(sequences):
-            if seq:
-                byte_arr = np.frombuffer(seq.encode("ascii"), dtype=np.uint8)
-                encoded[i, : len(seq)] = self._encode_table[byte_arr]
-
+        starts = np.zeros(n_seqs + 1, dtype=np.int64)
+        np.cumsum(lengths, out=starts[1:])
+        rows = np.repeat(np.arange(n_seqs, dtype=np.int64), lengths)
+        cols = np.arange(starts[-1], dtype=np.int64) - np.repeat(starts[:-1], lengths)
+        encoded[rows, cols] = flat
         return encoded, lengths
 
     def _decode_single_fast(self, encoded: np.ndarray, length: int) -> str:

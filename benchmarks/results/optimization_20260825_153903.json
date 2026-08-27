@@ -1,0 +1,85 @@
+{
+  "timestamp": "2026-08-25T22:39:03.758324+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "processor": "arm",
+  "python": "3.13.12",
+  "repeats": 5,
+  "metric": "best-of-N wall clock",
+  "results": [
+    {
+      "operation": "encode",
+      "n_sequences": 20000,
+      "seq_length": 1000,
+      "baseline": 0.036944499996025115,
+      "seqcore": 0.020095875006518327,
+      "biopython": 0.013034874995355494,
+      "python": null,
+      "self_speedup": 1.8384121111442893,
+      "vs_biopython": 0.6486343585998362
+    },
+    {
+      "operation": "gc_content",
+      "n_sequences": 50000,
+      "seq_length": 1000,
+      "baseline": 0.09450320799078327,
+      "seqcore": 0.018104041999322362,
+      "biopython": 0.6974977500067325,
+      "python": 0.1726296669949079,
+      "self_speedup": 5.2200060071845025,
+      "vs_biopython": 38.52718359981931
+    },
+    {
+      "operation": "reverse_complement",
+      "n_sequences": 50000,
+      "seq_length": 1000,
+      "baseline": 0.08778733400686178,
+      "seqcore": 0.05976079100219067,
+      "biopython": 0.04830808400583919,
+      "python": 0.07118241699936334,
+      "self_speedup": 1.4689787824870613,
+      "vs_biopython": 0.8083575065810014
+    },
+    {
+      "operation": "translate",
+      "n_sequences": 10000,
+      "seq_length": 1000,
+      "baseline": 0.4605644580005901,
+      "seqcore": 0.016758541998569854,
+      "biopython": 0.5491307909978786,
+      "python": null,
+      "self_speedup": 27.482370366103083,
+      "vs_biopython": 32.76721752075691
+    },
+    {
+      "operation": "count_kmers",
+      "n_sequences": 2000,
+      "seq_length": 1000,
+      "baseline": 0.4148502500029281,
+      "seqcore": 0.41564683300384786,
+      "biopython": null,
+      "python": 0.7324534159997711,
+      "self_speedup": 0.9980835099953417
+    },
+    {
+      "operation": "count_kmers_k8",
+      "n_sequences": 2000,
+      "seq_length": 1000,
+      "baseline": 0.26493554199987557,
+      "seqcore": 0.0561845829943195,
+      "biopython": null,
+      "python": 0.4156065419956576,
+      "self_speedup": 4.715449112199724
+    },
+    {
+      "operation": "alignment",
+      "n_sequences": 1,
+      "seq_length": 1000,
+      "baseline": 0.4065985420020297,
+      "seqcore": 0.032071333000203595,
+      "biopython": 0.00127983299898915,
+      "python": null,
+      "self_speedup": 12.677943320891856,
+      "vs_biopython": 0.039905824899171646
+    }
+  ]
+}

@@ -345,7 +345,17 @@ class TestImport:
         assert hasattr(sc, "__version__")
 
     def test_version(self):
-        """Test version string."""
+        """Version is a PEP 440 release string and matches the packaging metadata."""
+        import contextlib
+        import re
+        from importlib.metadata import PackageNotFoundError, version
+
         import seqcore as sc
 
-        assert sc.__version__ == "0.3.0"
+        assert re.fullmatch(
+            r"\d+\.\d+\.\d+([abrc.dev+][\w.+-]*)?", sc.__version__
+        ), f"unexpected version string: {sc.__version__}"
+        # Guards against __init__ and pyproject drifting apart. Skipped when
+        # running from a source tree with no installed distribution.
+        with contextlib.suppress(PackageNotFoundError):
+            assert version("seqcore") == sc.__version__

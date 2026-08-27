@@ -21,6 +21,7 @@ def check_gpu():
     # Check NumPy
     try:
         import numpy as np
+
         print(f"[OK] NumPy {np.__version__} installed")
     except ImportError:
         print("[ERROR] NumPy not installed")
@@ -30,6 +31,7 @@ def check_gpu():
     # Check CuPy
     try:
         import cupy as cp
+
         print(f"[OK] CuPy {cp.__version__} installed")
     except ImportError:
         print("[ERROR] CuPy not installed")
@@ -64,7 +66,7 @@ def check_gpu():
 
         # Get device info
         try:
-            name = device.name if hasattr(device, 'name') else "Unknown"
+            name = device.name if hasattr(device, "name") else "Unknown"
             print(f"     Device: {name}")
         except Exception:
             pass
@@ -77,8 +79,8 @@ def check_gpu():
 
         # Get compute capability
         attrs = device.attributes
-        major = attrs.get('ComputeCapabilityMajor', '?')
-        minor = attrs.get('ComputeCapabilityMinor', '?')
+        major = attrs.get("ComputeCapabilityMajor", "?")
+        minor = attrs.get("ComputeCapabilityMinor", "?")
         print(f"     Compute Capability: {major}.{minor}")
 
     except Exception as e:
@@ -96,6 +98,7 @@ def check_gpu():
         # Matrix multiplication
         cp.cuda.Stream.null.synchronize()
         import time
+
         start = time.perf_counter()
         z = cp.dot(x, y)
         cp.cuda.Stream.null.synchronize()
