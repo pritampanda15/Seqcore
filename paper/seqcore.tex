@@ -82,8 +82,8 @@ $\GCvsBio\times$ Biopython) and translates in $\TransMs$\,ms
 report the regimes where Seqcore is \emph{not} the right tool: reverse
 complement sits at $\RCvsBio\times$ Biopython, and pairwise alignment is
 $\AlignSlower\times$ slower than Biopython's compiled aligner. \ifMultiMachine Results are
-reported on \NumMachines{} machines --- a cloud Linux instance and a desktop
-Apple silicon Mac --- which agree on every conclusion while differing by up to
+reported on \NumMachines{} machines, a cloud Linux instance and a desktop
+Apple silicon Mac, which agree on every conclusion while differing by up to
 $\OtherFasterHi\times$ in absolute time. \fi We additionally measure what a GPU
 backend would be worth, and find that per-call host transfer, not arithmetic,
 would govern the outcome. Every vectorized routine is pinned to a naive scalar
@@ -120,17 +120,17 @@ In practice, Python bioinformatics libraries usually do not express them that
 way. Sequences are modelled as objects, and a batch is a list of those objects,
 so an operation over a batch becomes a loop. Each iteration is individually
 cheap, but the aggregate cost scales with the number of sequences and is
-dominated by interpreter work --- attribute lookup, temporary allocation,
-function-call overhead --- rather than by the residue arithmetic that the user
-actually asked for. The effect is invisible at the scale of a handful of
+dominated by interpreter work (attribute lookup, temporary allocation,
+function-call overhead) rather than by the residue arithmetic the user actually
+asked for. The effect is invisible at the scale of a handful of
 sequences and substantial at the scale at which these libraries are typically
 used.
 
 This pattern also has a more severe form in dynamic programming. A direct
 transcription of the Needleman--Wunsch recurrence~\cite{needleman1970} performs
 one Python loop iteration and several scalar array accesses per matrix cell, so
-the interpreter cost is $O(mn)$ --- the access pattern for which NumPy is least
-efficient, applied to the largest number of operations in the library.
+the interpreter cost is $O(mn)$, which is the access pattern NumPy handles
+least efficiently, applied to the largest number of operations in the library.
 
 Seqcore is built around the alternative. A batch of sequences is stored once as
 a padded matrix of small integers together with a vector of true lengths, and
@@ -164,8 +164,8 @@ carry no meaning.
 Two properties of this layout govern everything that follows. First, any
 elementwise operation on residues becomes an operation on $D$, expressible as a
 constant number of NumPy calls regardless of $n$. Second, correctness on ragged
-batches reduces to a single recurring question --- whether padding is excluded
---- which is answered once by the boolean mask
+batches reduces to a single recurring question, whether padding is excluded,
+answered once by the boolean mask
 $M_{ij} = [\,j < \ell_i\,]$ rather than separately inside every function. When
 all lengths are equal the mask is unnecessary, and Seqcore skips it; this
 uniform case is common enough to be worth the special case.
@@ -186,7 +186,7 @@ flat = table[np.frombuffer("".join(sequences).encode("ascii"), dtype=np.uint8)]
 \end{lstlisting}
 For uniform lengths the result reshapes directly to $(n,W)$. For ragged batches,
 the flat codes are scattered into the padded matrix using row and column indices
-derived from a cumulative sum of $\ell$ --- again a constant number of NumPy
+derived from a cumulative sum of $\ell$, again a constant number of NumPy
 calls. The only per-sequence work remaining is the concatenation itself, which
 executes in C.
 
@@ -261,7 +261,7 @@ and only the \emph{distinct} $k$-mers are decoded back into strings.
 
 This is a win only when $k$-mers actually collapse onto one another. When nearly
 every window is unique the integer sort dominates and CPython's
-\texttt{collections.Counter} --- a tight C loop over interned strings --- is
+\texttt{collections.Counter}, a tight C loop over interned strings, is
 faster. The number of distinct $k$-mers is bounded by $\min(N,4^k)$ for $N$
 windows, which supplies a cheap dispatch rule: use the integer path when
 $4^k \le N$, and otherwise fall back to the string counter. The measured
@@ -328,8 +328,9 @@ which this kind of analysis is actually run.
 Each configuration runs in a
 freshly spawned subprocess, so import order, allocator state and warmed caches
 cannot leak between implementations, and each reported time is the best of five
-repetitions (three for alignment and $k$-mer counting) --- the appropriate
-statistic for throughput on a machine that is not otherwise quiesced. Sequences
+repetitions (three for alignment and $k$-mer counting), which is the
+appropriate statistic for throughput on a machine that is not otherwise
+quiesced. Sequences
 are uniformly random over $\{A,C,G,T\}$ from a fixed seed.
 
 The pure-Python comparison uses the fastest obvious standard-library formulation
@@ -399,8 +400,8 @@ Figure~\ref{fig:align}a is visibly sub-quadratic there before converging to the
 $O(L^2)$ reference.
 
 Biopython's aligner sustains roughly $\AlignBioCells$ million cells\,s$^{-1}$ across the
-whole range --- flat, as expected for compiled code with no per-call interpreter
-cost. Seqcore does not approach this and is not intended to;
+whole range. It is flat, as expected for compiled code with no per-call
+interpreter cost. Seqcore does not approach this and is not intended to;
 Section~\ref{sec:limits} states the consequence for users.
 
 \subsection{$k$-mer counting}
@@ -439,10 +440,10 @@ is the same on both machines.\fi}
 Absolute times depend strongly on the machine, so it is worth asking whether any
 conclusion does. Figure~\ref{fig:kmers}b repeats the comparison on both
 machines. Seqcore runs $\OtherFasterLo$--$\OtherFasterHi\times$ faster on the
-\FasterMachine{} than on the dedicated instance in absolute terms --- a desktop
-part outperforming a cloud vCPU allocation, which is worth knowing if you are
-choosing where to run this kind of analysis --- but the sign of every comparison
-is identical: the same three operations win, the same two lose, and the $k$-mer
+\FasterMachine{} than on the dedicated instance in absolute terms. A desktop
+part outperforming a cloud vCPU allocation is worth knowing when choosing where
+to run this kind of analysis. The sign of every comparison is nonetheless
+identical: the same three operations win, the same two lose, and the $k$-mer
 dispatch crossover falls at the same $k$.
 
 The magnitudes do move, and in both directions. GC content is
@@ -454,9 +455,9 @@ interpreter dispatch in different proportions. Pairwise alignment is
 $\AlignSlower\times$ slower than Biopython on one and $\OtherAlignSlower\times$
 on the other.
 
-The lesson is that a single-machine speedup figure should be read as one point
-estimate, not a property of the library --- which is why we report two machines
-and commit the harness that produced both.
+A single-machine speedup figure is therefore one point estimate rather than a
+property of the library. We report two machines and commit the harness that
+produced both.
 \fi
 
 \subsection{Beyond sequence operations}
@@ -479,7 +480,8 @@ innermost loop; restricting each atom to the neighbours whose inflated sphere
 can reach it makes the cost roughly linear rather than quadratic, and at 5000
 atoms takes it from tens of minutes to a fraction of a second.
 
-Two results are worth separating from the rest. The molecule functions wrap
+Two of these results mean something different from the others. The molecule
+functions wrap
 RDKit, and the structural neighbour searches wrap a spatial index; for those the
 honest target is parity, not victory, and Figure~\ref{fig:modules}a shows them
 sitting below $1$. A wrapper that costs a few tens of percent buys API
@@ -487,7 +489,7 @@ consistency at a defensible price; the same wrapper costing seventy times was
 simply a defect.
 
 Figure~\ref{fig:modules}b makes a different point. For tree building, the
-user-facing choice of distance metric spans three orders of magnitude ---
+user-facing choice of distance metric spans three orders of magnitude,
 far more than any implementation detail in this paper. \texttt{identity} aligns
 every pair with Needleman--Wunsch, which is correct for unaligned input and
 costs $O(n^2L^2)$; \texttt{hamming} compares an existing alignment column by
@@ -544,7 +546,7 @@ Within the domain modules, \texttt{nucleotide\_diversity} and
 construction itself is still an interpreted $O(n^3)$ loop, which becomes the
 limiting cost once the distance matrix is no longer the bottleneck.
 
-Two further limitations are worth recording. Seqcore's \texttt{align()} accepts a
+Seqcore's \texttt{align()} also accepts a
 \texttt{gap\_extend} argument that currently has no effect: gaps are scored
 linearly using \texttt{gap\_open} alone, and affine gap penalties are not yet
 implemented. This is documented in the function's docstring and covered by a
@@ -567,9 +569,9 @@ region, since CuPy launches kernels asynchronously.
 
 The result is a caution against the obvious headline. Measured with the matrix
 already resident on the device, the kernels are 23--326$\times$ faster than
-Seqcore's CPU path. Measured per call from host memory --- which is what a user
-calling \texttt{sc.reverse\_complement(arr)} would actually experience --- the
-same kernels are 5--20$\times$ faster, because transferring the batch across
+Seqcore's CPU path. Measured per call from host memory, which is what a user
+calling \texttt{sc.reverse\_complement(arr)} would actually experience, the same
+kernels are 5--20$\times$ faster, because transferring the batch across
 PCIe costs more than the arithmetic. For reverse complement, which performs one
 table lookup per byte, transfer accounts for 97\% of the elapsed time; the
 operation with the highest arithmetic intensity, $k$-mer counting at $k=8$,
@@ -579,9 +581,9 @@ Both numbers are correct measurements of different situations, and
 Figure~\ref{fig:gpu}c shows the relationship between them: if the encoded matrix
 stays on the device across $N$ successive operations, the single transfer is
 amortized and the effective speedup rises from the per-call value towards the
-resident-data limit. For reverse complement the crossover is fast --- three
-chained operations already double the benefit --- whereas $k$-mer counting
-begins near its ceiling.
+resident-data limit. For reverse complement the crossover is fast: three
+chained operations already double the benefit. $k$-mer counting begins near its
+ceiling.
 
 The design implication is specific. A GPU backend implemented per function, with
 each call copying in and out, would deliver roughly $5\times$ on the
@@ -606,7 +608,7 @@ host. \textbf{a}, Speedup measured with data already resident on the device
 per-call time goes; the annotation gives the transfer share. \textbf{c},
 Effective speedup when $N$ operations are chained before returning results to
 the host, so the transfer is paid once; dashed lines mark the resident-data
-limit from panel~\textbf{a}. \emph{Seqcore does not currently use the GPU} ---
+limit from panel~\textbf{a}. \emph{Seqcore does not currently use the GPU};
 these are measurements of a prospective backend, not of the shipping library.}
 \label{fig:gpu}
 \end{figure}
@@ -629,20 +631,20 @@ source with Figure~\ref{fig:kmers}b.}
 
 Seqcore's premise is that the representation, not the algorithm, is what usually
 limits this class of Python library. None of the techniques used here are novel
-in themselves --- masked reductions, lookup tables and wavefront dynamic
-programming are all standard --- but they only become available once a batch of
+in themselves. Masked reductions, lookup tables and wavefront dynamic
+programming are all standard. They only become available once a batch of
 sequences is a dense numeric array rather than a list of objects. Choosing that
 representation first is what makes the rest follow.
 
 The domain modules in Section~\ref{sec:res:modules} qualify that claim rather
 than confirming it. There the costs were repeated parsing, element-wise
-conversion at a language boundary, and the absence of a spatial index --- none
-of which is a representation problem. What the two halves share is narrower and
+conversion at a language boundary, and the absence of a spatial index. None of
+those is a representation problem. What the two halves share is narrower and
 perhaps more useful: in each case the measured time was going somewhere other
 than the arithmetic the user asked for, and the fix was to find where.
 
-Two points generalize beyond this library. The first is that an optimization
-needs a stated domain of applicability. The $k$-mer result is the clearest case:
+Two points generalize beyond this library. An optimization needs a stated
+domain of applicability. The $k$-mer result is the clearest case:
 the same integer encoding is a large win at small $k$ and a regression at large
 $k$, and only the $4^k \le N$ dispatch rule makes it safe to enable by default.
 Reporting the mean speedup over a favourable set of $k$ would have hidden this
