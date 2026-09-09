@@ -382,7 +382,7 @@ If you use Seqcore in your research, please cite:
   author = {Panda, Pritam Kumar},
   title = {Seqcore: High-performance biological sequence analysis},
   url = {https://github.com/pritampanda15/seqcore},
-  version = {0.5.0},
+  version = {0.5.1},
   year = {2026},
   institution = {Stanford University}
 }

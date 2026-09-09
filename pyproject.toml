@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "seqcore"
-version = "0.5.0"
+version = "0.5.1"
 description = "Vectorized biological sequence analysis: batch operations on a NumPy array representation"
 readme = "README.md"
 license = {text = "MIT"}
