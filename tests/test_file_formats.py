@@ -263,6 +263,38 @@ class TestSingleCellFormats:
         # The raw components stay available for callers that used them.
         assert "X_data" in data and "X_indptr" in data
 
+    def test_sparse_without_scipy_raises(self, tmp_path):
+        """Without SciPy a sparse matrix must say so, not come back empty."""
+        pytest.importorskip("h5py", reason="h5py required for HDF5 tests")
+        import builtins
+
+        import h5py
+        import numpy as np
+
+        import seqcore as sc
+
+        path = tmp_path / "sparse.h5ad"
+        with h5py.File(path, "w") as f:
+            g = f.create_group("X")
+            g.create_dataset("data", data=np.array([1.0, 2.0], dtype=np.float32))
+            g.create_dataset("indices", data=np.array([0, 1], dtype=np.int32))
+            g.create_dataset("indptr", data=np.array([0, 1, 2], dtype=np.int32))
+            g.attrs["shape"] = np.array([2, 2])
+
+        real_import = builtins.__import__
+
+        def no_scipy(name, *args, **kwargs):
+            if name.startswith("scipy"):
+                raise ImportError("scipy disabled for this test")
+            return real_import(name, *args, **kwargs)
+
+        builtins.__import__ = no_scipy
+        try:
+            with pytest.raises(ImportError, match="SciPy is required"):
+                sc.read(str(path))
+        finally:
+            builtins.__import__ = real_import
+
     def test_unknown_hdf5_layout_raises(self, tmp_path):
         """An unrecognised layout must fail loudly, not return an empty matrix."""
         pytest.importorskip("h5py", reason="h5py required for HDF5 tests")

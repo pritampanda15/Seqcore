@@ -965,14 +965,15 @@ def read_h5ad(filepath: str) -> dict:
 
     Returns:
         Dictionary with ``X`` (cells x genes), ``obs``, ``var``, ``uns``,
-        ``n_obs`` and ``n_vars``. A sparse ``X`` is returned as a SciPy sparse
-        matrix when SciPy is installed, and otherwise left as ``None`` with the
-        raw ``X_data``, ``X_indices`` and ``X_indptr`` arrays alongside it.
+        ``n_obs`` and ``n_vars``. A sparse matrix is returned as SciPy sparse,
+        with the raw ``X_data``, ``X_indices`` and ``X_indptr`` arrays alongside
+        it for an AnnData source.
 
     Raises:
         ValueError: If the file contains neither ``/X`` nor ``/matrix``. It is
             better to say so than to hand back an empty matrix that looks like
             a dataset with no cells in it.
+        ImportError: If the matrix is sparse and SciPy is not installed.
 
     Example:
         >>> adata = sc.read_h5ad("data.h5ad")
@@ -1012,11 +1013,22 @@ def _decode(values):
 
 
 def _assemble_sparse(sparse_data, indices, indptr, shape, transpose=False):
-    """Build a sparse matrix, or return None if SciPy is unavailable."""
+    """Build a sparse matrix from its CSR/CSC components.
+
+    Raises:
+        ImportError: If SciPy is missing. Returning None here would put the
+            caller back where an unreadable file left them, holding an empty
+            matrix with nothing to say why.
+
+    """
     try:
         from scipy.sparse import csc_matrix, csr_matrix
-    except ImportError:
-        return None
+    except ImportError as err:
+        raise ImportError(
+            "SciPy is required to read a sparse expression matrix. "
+            "Install with: pip install scipy"
+        ) from err
+
     build = csc_matrix if transpose else csr_matrix
     matrix = build((sparse_data, indices, indptr), shape=shape)
     return matrix.T.tocsr() if transpose else matrix

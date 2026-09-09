@@ -30,6 +30,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - String columns in `obs` and `var` are decoded from HDF5 fixed-width bytes to
   `str`. Gene names previously came back as `b"GENE1"`.
 
+- Reading a sparse matrix without SciPy installed now raises `ImportError`
+  naming the fix, rather than returning `X=None`. That was the same
+  silent-empty failure in a narrower form.
+
+### Changed
+
+- A sparse `/X` read without SciPy previously returned `X=None` alongside the
+  component arrays. It now raises. Callers that were reading `X_data`,
+  `X_indices` and `X_indptr` directly on a machine without SciPy will need to
+  install SciPy; the components are still populated when it is present.
+
 ## [0.5.0] - 2026-08-27
 
 Performance work on the domain modules -- molecules, structural biology and
