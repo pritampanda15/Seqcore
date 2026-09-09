@@ -5,6 +5,31 @@ All notable changes to Seqcore are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `read_h5ad()` silently returned an empty result for 10x CellRanger `.h5`
+  files. Those store the matrix under `/matrix`, not `/X`, so the reader found
+  nothing and handed back `X=None, n_obs=0, n_vars=0` without raising. A caller
+  had no way to tell that apart from a dataset with no cells in it.
+
+  10x files are now read, including the CellRanger 2.x layout that names its
+  feature datasets `gene_names` and `genes`. 10x stores genes as rows, the
+  opposite of AnnData, so the matrix is transposed on read: `X` is always cells
+  by genes. Barcodes land in `obs["_index"]`, and feature names, ids, genome and
+  type in `var`.
+
+- A file with neither `/X` nor `/matrix` now raises `ValueError` naming its
+  top-level keys, instead of returning an empty matrix.
+
+- A sparse `/X` group is now assembled into a SciPy sparse matrix rather than
+  left as `X=None`. The `X_data`, `X_indices` and `X_indptr` entries are still
+  present for callers that were reading them.
+
+- String columns in `obs` and `var` are decoded from HDF5 fixed-width bytes to
+  `str`. Gene names previously came back as `b"GENE1"`.
+
 ## [0.5.0] - 2026-08-27
 
 Performance work on the domain modules -- molecules, structural biology and

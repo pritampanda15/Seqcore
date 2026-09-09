@@ -950,16 +950,33 @@ def read_sam(filepath: str) -> dict:
 
 
 def read_h5ad(filepath: str) -> dict:
-    """Read single-cell data from HDF5/AnnData format.
+    """Read a single-cell expression matrix from HDF5.
+
+    Handles the two layouts in common use:
+
+    * **AnnData** (``.h5ad``), where the matrix is ``/X``, either as a dataset
+      or as a CSR group of ``data``/``indices``/``indptr``.
+    * **10x CellRanger** (``.h5``), where it is ``/matrix`` in CSC form with
+      genes as rows. It is transposed here so that, as in AnnData, rows are
+      cells.
 
     Args:
-        filepath: Path to H5AD file.
+        filepath: Path to the HDF5 file.
 
     Returns:
-        Dictionary with single-cell data.
+        Dictionary with ``X`` (cells x genes), ``obs``, ``var``, ``uns``,
+        ``n_obs`` and ``n_vars``. A sparse ``X`` is returned as a SciPy sparse
+        matrix when SciPy is installed, and otherwise left as ``None`` with the
+        raw ``X_data``, ``X_indices`` and ``X_indptr`` arrays alongside it.
+
+    Raises:
+        ValueError: If the file contains neither ``/X`` nor ``/matrix``. It is
+            better to say so than to hand back an empty matrix that looks like
+            a dataset with no cells in it.
 
     Example:
         >>> adata = sc.read_h5ad("data.h5ad")
+        >>> tenx = sc.read_h5ad("filtered_feature_bc_matrix.h5")
 
     """
     try:
@@ -969,58 +986,104 @@ def read_h5ad(filepath: str) -> dict:
             "h5py is required for HDF5 files. Install with: pip install h5py"
         ) from err
 
-    data = {
-        "X": None,
-        "obs": {},
-        "var": {},
-        "uns": {},
-        "n_obs": 0,
-        "n_vars": 0,
-    }
+    data = {"X": None, "obs": {}, "var": {}, "uns": {}, "n_obs": 0, "n_vars": 0}
 
     with h5py.File(filepath, "r") as f:
-        # Read main matrix
         if "X" in f:
-            x = f["X"]
-            if isinstance(x, h5py.Dataset):
-                data["X"] = x[:]
-                data["n_obs"] = x.shape[0]
-                data["n_vars"] = x.shape[1] if len(x.shape) > 1 else 1
-            elif isinstance(x, h5py.Group):
-                # Sparse matrix
-                if "data" in x:
-                    data["X_data"] = x["data"][:]
-                if "indices" in x:
-                    data["X_indices"] = x["indices"][:]
-                if "indptr" in x:
-                    data["X_indptr"] = x["indptr"][:]
-                if "shape" in x.attrs:
-                    shape = x.attrs["shape"]
-                    data["n_obs"] = shape[0]
-                    data["n_vars"] = shape[1]
-
-        # Read observations metadata
-        if "obs" in f:
-            obs = f["obs"]
-            for key in obs:
-                if isinstance(obs[key], h5py.Dataset):
-                    data["obs"][key] = obs[key][:]
-
-        # Read variables metadata
-        if "var" in f:
-            var = f["var"]
-            for key in var:
-                if isinstance(var[key], h5py.Dataset):
-                    data["var"][key] = var[key][:]
-
-        # Read unstructured data
-        if "uns" in f:
-            uns = f["uns"]
-            for key in uns:
-                if isinstance(uns[key], h5py.Dataset):
-                    data["uns"][key] = uns[key][:]
+            _read_anndata(f, data)
+        elif "matrix" in f:
+            _read_tenx(f["matrix"], data)
+        else:
+            raise ValueError(
+                f"{filepath}: no '/X' (AnnData) and no '/matrix' (10x) group. "
+                f"Top-level keys are {sorted(f.keys())}. Open the file with "
+                "h5py to inspect its layout."
+            )
 
     return data
+
+
+def _decode(values):
+    """HDF5 stores text as fixed-width bytes; return it as a string array."""
+    import numpy as np
+
+    values = np.asarray(values)
+    return values.astype(str) if values.dtype.kind == "S" else values
+
+
+def _assemble_sparse(sparse_data, indices, indptr, shape, transpose=False):
+    """Build a sparse matrix, or return None if SciPy is unavailable."""
+    try:
+        from scipy.sparse import csc_matrix, csr_matrix
+    except ImportError:
+        return None
+    build = csc_matrix if transpose else csr_matrix
+    matrix = build((sparse_data, indices, indptr), shape=shape)
+    return matrix.T.tocsr() if transpose else matrix
+
+
+def _read_anndata(f, data: dict) -> None:
+    """Populate `data` from an AnnData-style file."""
+    import h5py
+
+    x = f["X"]
+    if isinstance(x, h5py.Dataset):
+        data["X"] = x[:]
+        data["n_obs"] = x.shape[0]
+        data["n_vars"] = x.shape[1] if len(x.shape) > 1 else 1
+    elif isinstance(x, h5py.Group):
+        # Sparse CSR. The component arrays are kept for callers that were
+        # already reading them before the matrix was assembled here.
+        if "data" in x:
+            data["X_data"] = x["data"][:]
+        if "indices" in x:
+            data["X_indices"] = x["indices"][:]
+        if "indptr" in x:
+            data["X_indptr"] = x["indptr"][:]
+        if "shape" in x.attrs:
+            shape = tuple(int(v) for v in x.attrs["shape"])
+            data["n_obs"], data["n_vars"] = shape
+            if {"X_data", "X_indices", "X_indptr"} <= set(data):
+                data["X"] = _assemble_sparse(
+                    data["X_data"], data["X_indices"], data["X_indptr"], shape
+                )
+
+    for field in ("obs", "var", "uns"):
+        if field in f:
+            group = f[field]
+            for key in group:
+                if isinstance(group[key], h5py.Dataset):
+                    data[field][key] = _decode(group[key][:])
+
+
+def _read_tenx(matrix, data: dict) -> None:
+    """Populate `data` from a 10x CellRanger /matrix group.
+
+    10x stores the matrix as CSC with genes as rows, the opposite of AnnData's
+    convention, so it is transposed to cells x genes here.
+    """
+    n_genes, n_cells = (int(v) for v in matrix["shape"][:])
+    data["n_obs"], data["n_vars"] = n_cells, n_genes
+    data["X"] = _assemble_sparse(
+        matrix["data"][:],
+        matrix["indices"][:],
+        matrix["indptr"][:],
+        (n_genes, n_cells),
+        transpose=True,
+    )
+
+    if "barcodes" in matrix:
+        data["obs"]["_index"] = _decode(matrix["barcodes"][:])
+
+    if "features" in matrix:
+        features = matrix["features"]
+        for key in ("name", "id", "genome", "feature_type"):
+            if key in features:
+                data["var"]["_index" if key == "name" else key] = _decode(features[key][:])
+    elif "gene_names" in matrix:  # CellRanger 2.x
+        data["var"]["_index"] = _decode(matrix["gene_names"][:])
+        if "genes" in matrix:
+            data["var"]["id"] = _decode(matrix["genes"][:])
 
 
 def read_stream(

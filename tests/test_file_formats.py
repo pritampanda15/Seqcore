@@ -174,6 +174,110 @@ class TestSingleCellFormats:
         assert "cell_type" in data["obs"]
         assert "_index" in data["var"]
 
+    def test_tenx_matrix_layout(self, tmp_path):
+        """A 10x /matrix file reads back transposed to cells x genes."""
+        pytest.importorskip("h5py", reason="h5py required for HDF5 tests")
+        pytest.importorskip("scipy", reason="scipy required to assemble sparse X")
+        import h5py
+        import numpy as np
+        from scipy.sparse import csc_matrix
+
+        import seqcore as sc
+
+        rng = np.random.default_rng(0)
+        dense = (rng.random((5, 3)) < 0.6) * rng.random((5, 3)).astype(np.float32)
+        genes_by_cells = csc_matrix(dense)  # 10x orients genes as rows
+
+        path = tmp_path / "filtered_feature_bc_matrix.h5"
+        with h5py.File(path, "w") as f:
+            m = f.create_group("matrix")
+            m.create_dataset("data", data=genes_by_cells.data)
+            m.create_dataset("indices", data=genes_by_cells.indices)
+            m.create_dataset("indptr", data=genes_by_cells.indptr)
+            m.create_dataset("shape", data=np.array([5, 3]))
+            m.create_dataset("barcodes", data=np.array([b"c1", b"c2", b"c3"]))
+            feat = m.create_group("features")
+            feat.create_dataset("name", data=np.array([f"G{i}".encode() for i in range(5)]))
+            feat.create_dataset("id", data=np.array([f"ENSG{i}".encode() for i in range(5)]))
+
+        data = sc.read(str(path))
+
+        # Transposed to the AnnData convention: rows are cells.
+        assert data["X"].shape == (3, 5)
+        assert (data["n_obs"], data["n_vars"]) == (3, 5)
+        np.testing.assert_allclose(data["X"].toarray(), dense.T)
+
+        # Byte strings are decoded.
+        assert list(data["obs"]["_index"]) == ["c1", "c2", "c3"]
+        assert list(data["var"]["_index"]) == ["G0", "G1", "G2", "G3", "G4"]
+        assert list(data["var"]["id"])[0] == "ENSG0"
+
+    def test_tenx_cellranger_2x_layout(self, tmp_path):
+        """CellRanger 2.x named the feature datasets differently."""
+        pytest.importorskip("h5py", reason="h5py required for HDF5 tests")
+        pytest.importorskip("scipy", reason="scipy required to assemble sparse X")
+        import h5py
+        import numpy as np
+        from scipy.sparse import csc_matrix
+
+        import seqcore as sc
+
+        m2 = csc_matrix(np.eye(3, dtype=np.float32))
+        path = tmp_path / "old_cellranger.h5"
+        with h5py.File(path, "w") as f:
+            m = f.create_group("matrix")
+            m.create_dataset("data", data=m2.data)
+            m.create_dataset("indices", data=m2.indices)
+            m.create_dataset("indptr", data=m2.indptr)
+            m.create_dataset("shape", data=np.array([3, 3]))
+            m.create_dataset("gene_names", data=np.array([b"A", b"B", b"C"]))
+            m.create_dataset("genes", data=np.array([b"E1", b"E2", b"E3"]))
+
+        data = sc.read(str(path))
+        assert list(data["var"]["_index"]) == ["A", "B", "C"]
+        assert list(data["var"]["id"]) == ["E1", "E2", "E3"]
+
+    def test_sparse_anndata_x_is_assembled(self, tmp_path):
+        """A CSR /X group is returned as a matrix, not loose components."""
+        pytest.importorskip("h5py", reason="h5py required for HDF5 tests")
+        pytest.importorskip("scipy", reason="scipy required to assemble sparse X")
+        import h5py
+        import numpy as np
+        from scipy.sparse import csr_matrix
+
+        import seqcore as sc
+
+        dense = np.array([[1.0, 0.0, 2.0], [0.0, 3.0, 0.0]], dtype=np.float32)
+        sparse = csr_matrix(dense)
+
+        path = tmp_path / "sparse.h5ad"
+        with h5py.File(path, "w") as f:
+            g = f.create_group("X")
+            g.create_dataset("data", data=sparse.data)
+            g.create_dataset("indices", data=sparse.indices)
+            g.create_dataset("indptr", data=sparse.indptr)
+            g.attrs["shape"] = np.array([2, 3])
+
+        data = sc.read(str(path))
+        np.testing.assert_allclose(data["X"].toarray(), dense)
+        # The raw components stay available for callers that used them.
+        assert "X_data" in data and "X_indptr" in data
+
+    def test_unknown_hdf5_layout_raises(self, tmp_path):
+        """An unrecognised layout must fail loudly, not return an empty matrix."""
+        pytest.importorskip("h5py", reason="h5py required for HDF5 tests")
+        import h5py
+        import numpy as np
+
+        import seqcore as sc
+
+        path = tmp_path / "mystery.h5"
+        with h5py.File(path, "w") as f:
+            f.create_dataset("counts", data=np.zeros((4, 4)))
+
+        with pytest.raises(ValueError, match="no '/X'.*no '/matrix'"):
+            sc.read(str(path))
+
 
 class TestFormatDetection:
     """Tests for automatic format detection."""

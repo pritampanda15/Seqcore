@@ -108,6 +108,12 @@ data = sc.read("reads.fastq.gz")
 for batch in sc.read_stream("huge.fastq.gz", batch_size=100_000):
     results = process(batch)
 
+# Single-cell matrices: AnnData (.h5ad) and 10x CellRanger (.h5)
+sc_data = sc.read("filtered_feature_bc_matrix.h5")
+counts = sc_data["X"]                    # cells x genes, SciPy sparse
+cells = sc_data["obs"]["_index"]         # barcodes
+genes = sc_data["var"]["_index"]         # gene symbols
+
 # Database fetching
 seq = sc.fetch("NP_000509")      # NCBI/UniProt
 structure = sc.fetch("1ABC")     # PDB
